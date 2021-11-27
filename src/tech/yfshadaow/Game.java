@@ -225,7 +225,6 @@ public class Game extends BukkitRunnable implements Listener {
     @EventHandler
     public void onPlayerChangeGame(PlayerChangeGameEvent pcge) {
         players.remove(pcge.getPlayer());
-        pcge.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent pqe) {
