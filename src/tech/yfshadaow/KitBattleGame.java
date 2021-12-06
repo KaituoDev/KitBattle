@@ -28,26 +28,25 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class Game extends BukkitRunnable implements Listener {
+public class KitBattleGame extends BukkitRunnable implements Listener {
     World world;
     KitBattle plugin;
     List<Player> players;
-    Scoreboard scoreboard;
+    Scoreboard kitBattle;
     HashMap<Player, Long> cd1;
     HashMap<Player, Long> cd2;
 
-    public Game(KitBattle plugin) {
+    public KitBattleGame(KitBattle plugin) {
         this.plugin = plugin;
         this.players = plugin.players;
         this.world = Bukkit.getWorld("world");
-        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        scoreboard.registerNewObjective("kitBattleKills","dummy","职业战争击败榜");
-        scoreboard.getObjective("kitBattleKills").setDisplaySlot(DisplaySlot.SIDEBAR);
+        this.kitBattle = Bukkit.getScoreboardManager().getNewScoreboard();
+        kitBattle.registerNewObjective("kitBattleKills","dummy","职业战争击败榜");
+        kitBattle.getObjective("kitBattleKills").setDisplaySlot(DisplaySlot.SIDEBAR);
         cd1 = new HashMap<Player, Long>();
         cd2 = new HashMap<Player, Long>();
     }
@@ -67,7 +66,7 @@ public class Game extends BukkitRunnable implements Listener {
         //if (!player.getScoreboardTags().contains("zyzz")) { return; }//死亡者没有tag
         if (player.equals(killer)) { return; } //自杀判定
         if (players.contains(killer)) {
-            Score score = scoreboard.getObjective("kitBattleKills").getScore(killer);
+            Score score = kitBattle.getObjective("kitBattleKills").getScore(killer);
             score.setScore(score.getScore() + 1);//加分
         } else {
             return;//不处于任何一个游戏中
@@ -240,11 +239,11 @@ public class Game extends BukkitRunnable implements Listener {
         long x = location.getBlockX(); long y = location.getBlockY(); long z = location.getBlockZ();
         if (x == 0 && y == 202 && z == 1003) {
             players.add(pie.getPlayer());
-            pie.getPlayer().setScoreboard(scoreboard);
+            pie.getPlayer().setScoreboard(kitBattle);
         } else if (x == 0 && y == 203 && z == 997) {
-            scoreboard.getObjective("kitBattleKills").unregister();
-            scoreboard.registerNewObjective("kitBattleKills","dummy","职业战争击败榜");
-            scoreboard.getObjective("kitBattleKills").setDisplaySlot(DisplaySlot.SIDEBAR);
+            kitBattle.getObjective("kitBattleKills").unregister();
+            kitBattle.registerNewObjective("kitBattleKills","dummy","职业战争击败榜");
+            kitBattle.getObjective("kitBattleKills").setDisplaySlot(DisplaySlot.SIDEBAR);
         }
     }
     @Override
