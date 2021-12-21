@@ -3,7 +3,6 @@ package tech.yfshadaow;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -252,7 +251,7 @@ public class KitBattleGame extends BukkitRunnable implements Listener {
     }
 
     public long getTime(World world) {
-        return ((CraftWorld)world).getHandle().worldData.getTime();
+        return (world.getGameTime());
     }
 
     public void clearCoolDown(Player p) {
