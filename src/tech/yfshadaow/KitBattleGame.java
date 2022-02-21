@@ -3,31 +3,34 @@ package tech.yfshadaow;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.block.data.type.Fire;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SuspiciousStewMeta;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import static tech.yfshadaow.GameUtils.world;
 
@@ -66,10 +69,12 @@ public class KitBattleGame extends Game implements Listener {
         Player player = pde.getEntity();
         Player killer = pde.getEntity().getKiller();
 
+        clearCoolDown(player);
         if (killer == null) {
             return;
         } //不是玩家
         //if (!player.getScoreboardTags().contains("zyzz")) { return; }//死亡者没有tag
+
         if (player.equals(killer)) {
             return;
         } //自杀判定
@@ -77,20 +82,33 @@ public class KitBattleGame extends Game implements Listener {
             Score score = kitBattle.getObjective("kitBattleKills").getScore(killer);
             score.setScore(score.getScore() + 1);//加分
         } else {
-            return;//不处于任何一个游戏中
+            return;//不处于游戏中
         }
 
+        if (player.getGameMode().equals(GameMode.ADVENTURE)) {
+            player.setAllowFlight(false);
+        }
 
         if (killer.getInventory().getChestplate() == null) {
-            return;
-        }//没有胸甲
+            if (killer.getInventory().getHelmet() != null) {
+                if (killer.getInventory().getHelmet().getType().equals(Material.ZOMBIE_HEAD)) {
+                    killer.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 2));
+                }
+            }
+        }
+        ItemStack stew = new ItemStack(Material.SUSPICIOUS_STEW, 1);
+        SuspiciousStewMeta stewMeta = (SuspiciousStewMeta) stew.getItemMeta();
+        stewMeta.addCustomEffect(new PotionEffect(PotionEffectType.REGENERATION, 160, 0), true);
+        stew.setItemMeta(stewMeta);
+        killer.getInventory().addItem(stew);
+        /*
         if (killer.getInventory().getChestplate().getItemMeta() == null) {
             return;
         }//没有meta
-
         //这里添加内容
 
         switch (killer.getInventory().getChestplate().getItemMeta().getDisplayName()) {
+            case ""
             case "战士胸甲":
             case "坦克胸甲":
             case "太空人胸甲":
@@ -114,9 +132,22 @@ public class KitBattleGame extends Game implements Listener {
                 killer.getInventory().addItem(new ItemStack(Material.EGG, 4));
                 killer.getInventory().addItem(new ItemStack(Material.SNOWBALL, 8));
                 break;
+
+
         }
+              */
 
+    }
 
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent eee) {
+        if (!players.contains(((Fireball)eee.getEntity()).getShooter())) {
+            return;
+        }
+        if ((eee.getEntity() instanceof Fireball)) {
+            eee.setCancelled(true);
+            world.createExplosion(eee.getLocation(), 2F, false, false, (Entity) ((Fireball)eee.getEntity()).getShooter());
+        }
     }
 
     @EventHandler
@@ -140,7 +171,139 @@ public class KitBattleGame extends Game implements Listener {
         //这里开始添加内容
 
         switch (pie.getItem().getItemMeta().getDisplayName()) {
+            case "裂地":
+                Player victim = getNearestPlayer(executor, 6);
+                if (victim != null) {
+                    if (checkCoolDown(executor, cd1, 300)) {
+                        executor.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 49));
+                        executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 4));
+                        executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 40, 0));
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            executor.setVelocity(new Vector(0,0,0));
+                            executor.teleport(victim);
+                            world.createExplosion(victim.getLocation(), 1, false, false, executor);
+                        }, 20);
+                    }
+                }
+                break;
+            case "制毒":
+                if (!executor.getInventory().contains(Material.TIPPED_ARROW)) {
+                    if (checkCoolDown(executor, cd1, 300)) {
+                        ItemStack arrow = new ItemStack(Material.TIPPED_ARROW);
+                        PotionMeta meta = (PotionMeta)arrow.getItemMeta();
+                        meta.setBasePotionData(new PotionData(PotionType.POISON));
+                        meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, 40, 2), true);
+                        arrow.setItemMeta(meta);
+                        executor.getInventory().addItem(arrow);
+                    }
+                }
+                break;
+            case "剑技":
+                Set<Player> victims = getNearbyPlayers(executor,3);
+                if (!victims.isEmpty()) {
+                    if (checkCoolDown(executor, cd1, 200)) {
+                        for (Player v : victims) {
+                            Arrow a = executor.launchProjectile(Arrow.class, new Vector(0, -2, 0));
+                            Location l = v.getLocation().clone();
+                            l.setY(l.getY() + 2.5 );
+                            a.teleport(l);
+                        }
+                    }
+                }
+                break;
+            case "火球术":
+                if (checkCoolDown(executor, cd1, 240)) {
+                    Fireball fireball = executor.launchProjectile(Fireball.class);
+                    fireball.setVelocity(fireball.getVelocity().multiply(2));
+                }
+                break;
+            case "英魂":
+                executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
+                executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
+                break;
+            case "闪身":
+                Player target = getNearestPlayer(executor, 200);
+                if (target != null) {
+                    if (checkCoolDown(executor, cd1, 600)) {
+                        Vector vec = target.getLocation().toVector().subtract(executor.getLocation().toVector());
+                        if (vec.length() < 5) {
+                            executor.teleport(target);
+                        } else {
+                            Vector movementVec = vec.multiply(5 / vec.length());
+                            executor.teleport(executor.getLocation().add(movementVec));
+                        }
+                    }
+                }
+                break;
+            case "幻术":
+                Player target2 = getNearestPlayer(executor, 200);
+                if (target2 != null) {
+                    if (checkCoolDown(executor, cd1, 240)) {
+                        Location loc1 = executor.getLocation();
+                        Location loc2 = target2.getLocation();
+                        executor.teleport(loc2);
+                        target2.teleport(loc1);
+                    }
+                }
+                break;
+            case "重力禁锢":
+                Set<Player> victims2 = getNearbyPlayers(executor,4);
+                if (!victims2.isEmpty()) {
+                    if (checkCoolDown(executor, cd1, 600)) {
+                        for (Player v : victims2) {
+                            v.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 40, 255));
+                        }
+                    }
+                }
+                break;
+            case "唤魔":
+                Player target3 = getNearestPlayer(executor, 200);
+                if (target3 != null) {
+                    if (checkCoolDown(executor, cd1, 600)) {
+                        target3.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
+                        target3.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 0));
+                        Location l = target3.getLocation();
+                        Location l2 = l.clone(); l2.setX(l2.getX() - 1);
+                        Location l3 = l.clone(); l3.setX(l3.getX() + 1);
+                        Location l4 = l.clone(); l4.setZ(l4.getZ() - 1);
+                        Location l5 = l.clone(); l5.setZ(l5.getZ() + 1);
+                        EvokerFangs[] fangs = new EvokerFangs[5];
+                        fangs[0] = (EvokerFangs) world.spawnEntity(l, EntityType.EVOKER_FANGS);
+                        fangs[1] = (EvokerFangs) world.spawnEntity(l2, EntityType.EVOKER_FANGS);
+                        fangs[2] = (EvokerFangs) world.spawnEntity(l3, EntityType.EVOKER_FANGS);
+                        fangs[3] = (EvokerFangs) world.spawnEntity(l4, EntityType.EVOKER_FANGS);
+                        fangs[4] = (EvokerFangs) world.spawnEntity(l5, EntityType.EVOKER_FANGS);
 
+                        for (EvokerFangs fang : fangs) {
+                            fang.setOwner(executor);
+                        }
+                    }
+                }
+                break;
+            case "飞行":
+                if (checkCoolDown(executor, cd1, 800)) {
+                    executor.setAllowFlight(true);
+                    Bukkit.getScheduler().runTaskLater(plugin, ()-> {
+                        executor.setAllowFlight(false);
+                    }, 100);
+                }
+                break;
+            case "狂乱":
+                if (checkCoolDown(executor, cd1, 300)) {
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 60, 1));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1));
+                }
+                break;
+            case "自爆":
+                world.createExplosion(executor.getLocation(), 3, false, false, executor);
+                executor.setHealth(0);
+                break;
+            case "无冕":
+                if (checkCoolDown(executor, cd1, 300)) {
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 2));
+                }
+            /*
             case "§c烈焰攻击":
                 if (!checkCoolDown(executor, cd1, 800)) {
                     return;
@@ -169,7 +332,44 @@ public class KitBattleGame extends Game implements Listener {
                 world.playSound(pie.getPlayer().getLocation(), Sound.BLOCK_ANVIL_PLACE, 1, 1);
                 executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 0));
                 break;
+
+             */
         }
+    }
+
+    private Player getNearestPlayer(Player p, double radius) {
+        Player target = null;
+        for (Entity e : p.getNearbyEntities(radius,70,radius)) {
+            if (p.equals(e)) {
+                continue;
+            }
+            if (!players.contains(e)) {
+                continue;
+            }
+            if (target == null) {
+                target = (Player) e;
+            } else {
+                if (p.getLocation().distance(e.getLocation()) < p.getLocation().distance(target.getLocation())) {
+                    target = (Player) e;
+                }
+            }
+        }
+
+        return target;
+    }
+
+    private Set<Player> getNearbyPlayers(Player p, double radius) {
+        Set<Player> result = new HashSet<>();
+        for (Entity e : p.getNearbyEntities(radius,70,radius)) {
+            if (p.equals(e)) {
+                continue;
+            }
+            if (!players.contains(e)) {
+                continue;
+            }
+            result.add((Player) e);
+        }
+        return result;
     }
 
     @EventHandler
@@ -198,6 +398,7 @@ public class KitBattleGame extends Game implements Listener {
         }
     }
 
+    /*
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent phe) {
         if (!((phe.getEntity().getShooter()) instanceof Player)) {
@@ -282,19 +483,21 @@ public class KitBattleGame extends Game implements Listener {
         }
     }
 
-    @EventHandler
-    public void clearCoolDown(PlayerDeathEvent pde) {
-        clearCoolDown(pde.getEntity());
-    }
+     */
 
+
+    /* 有playerchangegameevent就不需要这个 大概
     @EventHandler
     public void clearCoolDown(PlayerTeleportEvent pte) {
         clearCoolDown(pte.getPlayer());
     } //重置玩家冷却
 
+
+     */
     @EventHandler
     public void onPlayerChangeGame(PlayerChangeGameEvent pcge) {
         players.remove(pcge.getPlayer());
+        clearCoolDown(pcge.getPlayer());
     }
 
     @EventHandler
