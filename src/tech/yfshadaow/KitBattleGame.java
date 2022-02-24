@@ -3,6 +3,7 @@ package tech.yfshadaow;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Fire;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -39,6 +40,8 @@ public class KitBattleGame extends Game implements Listener {
     Scoreboard kitBattle;
     HashMap<Player, Long> cd1;
     HashMap<Player, Long> cd2;
+    int particleNumber = 30;
+    float soundVolume = 1.0f;
 
     private KitBattleGame(KitBattle plugin) {
         this.plugin = plugin;
@@ -178,6 +181,19 @@ public class KitBattleGame extends Game implements Listener {
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 49));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 4));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 40, 0));
+                        world.playSound(executor.getLocation(),Sound.BLOCK_ANVIL_PLACE, SoundCategory.PLAYERS, soundVolume, 1.5f);
+                        BlockData d = null;
+                        Location l = executor.getLocation().clone();
+                        if (!world.getBlockAt(l.getBlockX(),l.getBlockY(),l.getBlockZ()).getType().equals(Material.AIR)) {
+                            d = world.getBlockData(l.getBlockX(),l.getBlockY(),l.getBlockZ());
+                        } else if (!world.getBlockAt(l.getBlockX(),l.getBlockY() - 1,l.getBlockZ()).getType().equals(Material.AIR)) {
+                            d = world.getBlockData(l.getBlockX(),l.getBlockY() - 1,l.getBlockZ());
+                        }
+                        if (d != null) {
+                            world.spawnParticle(Particle.BLOCK_CRACK, executor.getLocation(), particleNumber, 3, 3, 3, d);
+                        } else {
+                            world.spawnParticle(Particle.BLOCK_CRACK, executor.getLocation(), particleNumber, 3, 3, 3, world.getBlockData(0, 75, 0));
+                        }
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
                             executor.setVelocity(new Vector(0,0,0));
                             executor.teleport(victim);
@@ -195,6 +211,8 @@ public class KitBattleGame extends Game implements Listener {
                         meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, 40, 2), true);
                         arrow.setItemMeta(meta);
                         executor.getInventory().addItem(arrow);
+                        world.playSound(executor.getLocation(), Sound.BLOCK_GRASS_BREAK , SoundCategory.PLAYERS, soundVolume, 1);
+                        world.spawnParticle(Particle.SPORE_BLOSSOM_AIR , executor.getLocation(), particleNumber, 3, 3, 3);
                     }
                 }
                 break;
@@ -207,24 +225,30 @@ public class KitBattleGame extends Game implements Listener {
                             Location l = v.getLocation().clone();
                             l.setY(l.getY() + 2.5 );
                             a.teleport(l);
+                            world.playSound(executor.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP , SoundCategory.PLAYERS, soundVolume, 1);
+                            world.spawnParticle(Particle.SWEEP_ATTACK, executor.getLocation(), particleNumber, 3, 3, 3);
                         }
                     }
                 }
                 break;
             case "火球术":
                 if (checkCoolDown(executor, cd1, 240)) {
-                    Fireball fireball = executor.launchProjectile(Fireball.class);
-                    fireball.setVelocity(fireball.getVelocity().multiply(2));
+                    Fireball fireball = executor.launchProjectile(Fireball.class, executor.getEyeLocation().getDirection().normalize().multiply(0.8));
+                    fireball.setVelocity(fireball.getVelocity().multiply(4));
+                    world.playSound(executor.getLocation(), Sound.ENTITY_GHAST_SHOOT , SoundCategory.PLAYERS, soundVolume, 1);
+                    world.spawnParticle(Particle.SPELL_WITCH, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
                 break;
             case "英魂":
                 executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
                 executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
+                world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, soundVolume, 1);
+                world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
                 break;
             case "闪身":
                 Player target = getNearestPlayer(executor, 200);
                 if (target != null) {
-                    if (checkCoolDown(executor, cd1, 600)) {
+                    if (checkCoolDown(executor, cd1, 200)) {
                         Vector vec = target.getLocation().toVector().subtract(executor.getLocation().toVector());
                         if (vec.length() < 5) {
                             executor.teleport(target);
@@ -232,6 +256,8 @@ public class KitBattleGame extends Game implements Listener {
                             Vector movementVec = vec.multiply(5 / vec.length());
                             executor.teleport(executor.getLocation().add(movementVec));
                         }
+                        world.playSound(executor.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT , SoundCategory.PLAYERS, soundVolume, 1);
+                        world.spawnParticle(Particle.DRAGON_BREATH, executor.getLocation(), particleNumber, 3, 3, 3);
                     }
                 }
                 break;
@@ -243,6 +269,8 @@ public class KitBattleGame extends Game implements Listener {
                         Location loc2 = target2.getLocation();
                         executor.teleport(loc2);
                         target2.teleport(loc1);
+                        world.playSound(executor.getLocation(), Sound.ENTITY_SHULKER_TELEPORT , SoundCategory.PLAYERS, soundVolume, 1);
+                        world.spawnParticle(Particle.DRAGON_BREATH, executor.getLocation(), particleNumber, 3, 3, 3);
                     }
                 }
                 break;
@@ -251,7 +279,9 @@ public class KitBattleGame extends Game implements Listener {
                 if (!victims2.isEmpty()) {
                     if (checkCoolDown(executor, cd1, 600)) {
                         for (Player v : victims2) {
-                            v.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 40, 255));
+                            v.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 3));
+                            world.playSound(executor.getLocation(), Sound.ENTITY_SHULKER_BULLET_HIT , SoundCategory.PLAYERS, soundVolume, 1);
+                            world.spawnParticle(Particle.SCRAPE, executor.getLocation(), particleNumber, 3, 3, 3);
                         }
                     }
                 }
@@ -286,12 +316,16 @@ public class KitBattleGame extends Game implements Listener {
                     Bukkit.getScheduler().runTaskLater(plugin, ()-> {
                         executor.setAllowFlight(false);
                     }, 100);
+                    world.playSound(executor.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH , SoundCategory.PLAYERS, soundVolume, 1);
+                    world.spawnParticle(Particle.END_ROD, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
                 break;
             case "狂乱":
                 if (checkCoolDown(executor, cd1, 300)) {
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 60, 1));
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1));
+                    world.playSound(executor.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL , SoundCategory.PLAYERS, soundVolume, 2);
+                    world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
                 break;
             case "自爆":
@@ -302,6 +336,8 @@ public class KitBattleGame extends Game implements Listener {
                 if (checkCoolDown(executor, cd1, 300)) {
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0));
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 2));
+                    world.playSound(executor.getLocation(), Sound.BLOCK_BEACON_ACTIVATE , SoundCategory.PLAYERS, soundVolume, 2);
+                    world.spawnParticle(Particle.SPELL_INSTANT, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
             /*
             case "§c烈焰攻击":
