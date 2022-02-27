@@ -27,7 +27,7 @@ public class KitBattleCommandExecutor implements CommandExecutor {
         if (command.getName().equalsIgnoreCase("kbspawn")) {
             if (commandSender.isOp() && commandSender instanceof Player) {
                 ((Player)commandSender).teleport(spawnLocations[random.nextInt(7)]);
-                ((Player)commandSender).playSound(((Player) commandSender).getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1, 1, SoundCategory);
+                ((Player)commandSender).playSound(((Player) commandSender).getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP,  SoundCategory.PLAYERS, 1, 1);
                 return true;
             }
         }

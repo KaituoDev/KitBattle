@@ -184,7 +184,7 @@ public class KitBattleGame extends Game implements Listener {
             case "裂地":
                 Player victim = getNearestPlayer(executor, 6);
                 if (victim != null) {
-                    if (checkCoolDown(executor, cd1, 300)) {
+                    if (checkCoolDown(executor, cd1, 800)) {
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 49));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 4));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 40, 0));
@@ -247,10 +247,12 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "英魂":
-                executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
-                executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
-                world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, soundVolume, 1);
-                world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
+                if (checkCoolDown(executor, cd1, 999999)) {
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
+                    world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, soundVolume, 1);
+                    world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
+                }
                 break;
             case "闪身":
                 Player target = getNearestPlayer(executor, 200);
@@ -269,7 +271,7 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "幻术":
-                Player target2 = getNearestPlayer(executor, 200);
+                Player target2 = getNearestPlayer(executor, 6);
                 if (target2 != null) {
                     if (checkCoolDown(executor, cd1, 240)) {
                         Location loc1 = executor.getLocation();
