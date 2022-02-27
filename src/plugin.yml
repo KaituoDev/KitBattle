@@ -4,3 +4,6 @@ main: tech.yfshadaow.KitBattle
 version: 1.0
 author: YFshadaow
 depend: [GameUtils]
+commands:
+  kbspawn:
+    description: spawn in kitbattle

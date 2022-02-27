@@ -42,6 +42,13 @@ public class KitBattleGame extends Game implements Listener {
     HashMap<Player, Long> cd2;
     int particleNumber = 30;
     float soundVolume = 1.0f;
+    public Location spawnLocations[] = {new Location(world, 41.5,80.0625,1000.5,90,0),
+        new Location(world, 15.5,66,1000.5,90,0),
+        new Location(world, 28.5,66,976.5,45,0),
+        new Location(world, -6.5,66,1021.5,180,0),
+        new Location(world, -12.5,66,1000.5,-90,0),
+        new Location(world, -12.5,66,978.5,-45,0),
+        new Location(world, -40.5,55,954.5,-90,0)};
 
     private KitBattleGame(KitBattle plugin) {
         this.plugin = plugin;
