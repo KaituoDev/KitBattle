@@ -4,7 +4,6 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Fire;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,9 +11,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SuspiciousStewMeta;
 import org.bukkit.potion.PotionData;
@@ -28,18 +25,15 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static tech.yfshadaow.GameUtils.world;
 
 public class KitBattleGame extends Game implements Listener {
     private static final KitBattleGame instance = new KitBattleGame((KitBattle) Bukkit.getPluginManager().getPlugin("KitBattle"));
     Scoreboard kitBattle;
-    HashMap<Player, Long> cd1;
-    HashMap<Player, Long> cd2;
+    HashMap<Player, List<Long>> coolDown;
+    //HashMap<Player, Long> cd2;
     int particleNumber = 30;
     float soundVolume = 1.0f;
     public Location spawnLocations[] = {new Location(world, 41.5,80.0625,1000.5,90,0),
@@ -56,8 +50,29 @@ public class KitBattleGame extends Game implements Listener {
         kitBattle = Bukkit.getScoreboardManager().getNewScoreboard();
         kitBattle.registerNewObjective("kitBattleKills", "dummy", "职业战争击败榜");
         kitBattle.getObjective("kitBattleKills").setDisplaySlot(DisplaySlot.SIDEBAR);
-        cd1 = new HashMap<Player, Long>();
-        cd2 = new HashMap<Player, Long>();
+        coolDown = new HashMap<>();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, ()-> {
+            for (Player p : players) {
+                if (coolDown.get(p) == null) {
+                    List<Long> l = new ArrayList<>(2);
+                    l.add(0,0L);
+                    l.add(1,0L);
+                    coolDown.put(p, l);
+                } else {
+                    List<Long> l = coolDown.get(p);
+                    //p.sendMessage(String.valueOf(l.get(0)));
+                    if (l.get(0) > 0) {
+                        l.set(0, l.get(0) - 1);
+                    }
+                    if (l.get(1) != 0) {
+                        p.setLevel((int) Math.ceil(((float)l.get(0)) / 20));
+                        p.setExp(((float)(l.get(1) - l.get(0))) / l.get(1));
+                    }
+
+                }
+            }
+        }, 1,1 );
+        //cd2 = new HashMap<Player, Long>();
         initGame(plugin, "KitBattle", 0, null, null, null,
                 null, null, new BoundingBox(-16, 64, 1966, 15, 88, 2017));
     }
@@ -150,13 +165,19 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     @EventHandler
-    public void onEntityExplode(EntityExplodeEvent eee) {
-        if (!players.contains(((Fireball)eee.getEntity()).getShooter())) {
+    public void onProjectileHit(ProjectileHitEvent phe) {
+        if (!players.contains(phe.getEntity().getShooter())) {
             return;
         }
-        if ((eee.getEntity() instanceof Fireball)) {
-            eee.setCancelled(true);
-            world.createExplosion(eee.getLocation(), 2F, false, false, (Entity) ((Fireball)eee.getEntity()).getShooter());
+        if ((phe.getEntity() instanceof Fireball)) {
+            if (!(phe.getEntity().getShooter() instanceof Player)) {
+                return;
+            }
+            if (phe.getEntity().getScoreboardTags().contains("kitBattleMage")) {
+                phe.setCancelled(true);
+                phe.getEntity().remove();
+                world.createExplosion(phe.getEntity().getLocation(), 2F, false, false, (Entity) phe.getEntity().getShooter());
+            }
         }
     }
 
@@ -184,7 +205,7 @@ public class KitBattleGame extends Game implements Listener {
             case "裂地":
                 Player victim = getNearestPlayer(executor, 6);
                 if (victim != null) {
-                    if (checkCoolDown(executor, cd1, 800)) {
+                    if (checkCoolDown(executor, 800)) {
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 49));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 4));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 40, 0));
@@ -211,7 +232,7 @@ public class KitBattleGame extends Game implements Listener {
                 break;
             case "制毒":
                 if (!executor.getInventory().contains(Material.TIPPED_ARROW)) {
-                    if (checkCoolDown(executor, cd1, 300)) {
+                    if (checkCoolDown(executor, 300)) {
                         ItemStack arrow = new ItemStack(Material.TIPPED_ARROW);
                         PotionMeta meta = (PotionMeta)arrow.getItemMeta();
                         meta.setBasePotionData(new PotionData(PotionType.POISON));
@@ -226,7 +247,7 @@ public class KitBattleGame extends Game implements Listener {
             case "剑技":
                 Set<Player> victims = getNearbyPlayers(executor,3);
                 if (!victims.isEmpty()) {
-                    if (checkCoolDown(executor, cd1, 200)) {
+                    if (checkCoolDown(executor, 200)) {
                         for (Player v : victims) {
                             Arrow a = executor.launchProjectile(Arrow.class, new Vector(0, -2, 0));
                             Location l = v.getLocation().clone();
@@ -239,15 +260,17 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "火球术":
-                if (checkCoolDown(executor, cd1, 240)) {
-                    Fireball fireball = executor.launchProjectile(Fireball.class, executor.getEyeLocation().getDirection().normalize().multiply(0.8));
-                    fireball.setVelocity(fireball.getVelocity().multiply(4));
+                if (checkCoolDown(executor, 240)) {
+                    //Fireball fireball = executor.launchProjectile(Fireball.class, executor.getEyeLocation().getDirection().normalize().multiply(0.8));
+                    Fireball fireball = (Fireball) world.spawnEntity(executor.getEyeLocation().clone().add(executor.getEyeLocation().getDirection()), EntityType.FIREBALL, false);
+                    fireball.setShooter(executor);
+                    fireball.getScoreboardTags().add("kitBattleMage");
                     world.playSound(executor.getLocation(), Sound.ENTITY_GHAST_SHOOT , SoundCategory.PLAYERS, soundVolume, 1);
                     world.spawnParticle(Particle.SPELL_WITCH, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
                 break;
             case "英魂":
-                if (checkCoolDown(executor, cd1, 999999)) {
+                if (checkCoolDown(executor, 999999)) {
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
                     world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, soundVolume, 1);
@@ -257,7 +280,7 @@ public class KitBattleGame extends Game implements Listener {
             case "闪身":
                 Player target = getNearestPlayer(executor, 200);
                 if (target != null) {
-                    if (checkCoolDown(executor, cd1, 200)) {
+                    if (checkCoolDown(executor, 200)) {
                         Vector vec = target.getLocation().toVector().subtract(executor.getLocation().toVector());
                         if (vec.length() < 5) {
                             executor.teleport(target);
@@ -273,7 +296,7 @@ public class KitBattleGame extends Game implements Listener {
             case "幻术":
                 Player target2 = getNearestPlayer(executor, 6);
                 if (target2 != null) {
-                    if (checkCoolDown(executor, cd1, 240)) {
+                    if (checkCoolDown(executor, 240)) {
                         Location loc1 = executor.getLocation();
                         Location loc2 = target2.getLocation();
                         executor.teleport(loc2);
@@ -286,7 +309,7 @@ public class KitBattleGame extends Game implements Listener {
             case "重力禁锢":
                 Set<Player> victims2 = getNearbyPlayers(executor,4);
                 if (!victims2.isEmpty()) {
-                    if (checkCoolDown(executor, cd1, 600)) {
+                    if (checkCoolDown(executor, 600)) {
                         for (Player v : victims2) {
                             v.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 3));
                             world.playSound(executor.getLocation(), Sound.ENTITY_SHULKER_BULLET_HIT , SoundCategory.PLAYERS, soundVolume, 1);
@@ -298,7 +321,7 @@ public class KitBattleGame extends Game implements Listener {
             case "唤魔":
                 Player target3 = getNearestPlayer(executor, 200);
                 if (target3 != null) {
-                    if (checkCoolDown(executor, cd1, 600)) {
+                    if (checkCoolDown(executor, 600)) {
                         target3.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
                         target3.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 0));
                         Location l = target3.getLocation();
@@ -320,7 +343,7 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "飞行":
-                if (checkCoolDown(executor, cd1, 800)) {
+                if (checkCoolDown(executor, 800)) {
                     executor.setAllowFlight(true);
                     Bukkit.getScheduler().runTaskLater(plugin, ()-> {
                         executor.setAllowFlight(false);
@@ -330,7 +353,7 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "狂乱":
-                if (checkCoolDown(executor, cd1, 300)) {
+                if (checkCoolDown(executor, 300)) {
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 60, 1));
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1));
                     world.playSound(executor.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL , SoundCategory.PLAYERS, soundVolume, 2);
@@ -342,7 +365,7 @@ public class KitBattleGame extends Game implements Listener {
                 executor.setHealth(0);
                 break;
             case "无冕":
-                if (checkCoolDown(executor, cd1, 300)) {
+                if (checkCoolDown(executor, 300)) {
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0));
                     executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 2));
                     world.playSound(executor.getLocation(), Sound.BLOCK_BEACON_ACTIVATE , SoundCategory.PLAYERS, soundVolume, 2);
@@ -555,7 +578,9 @@ public class KitBattleGame extends Game implements Listener {
         long y = location.getBlockY();
         long z = location.getBlockZ();
         if (x == 0 && y == 202 && z == 1003) {
-            players.add(pie.getPlayer());
+            if (!players.contains(pie.getPlayer())) {
+                players.add(pie.getPlayer());
+            }
             pie.getPlayer().setScoreboard(kitBattle);
         } else if (x == 0 && y == 203 && z == 997) {
             kitBattle.getObjective("kitBattleKills").unregister();
@@ -582,27 +607,28 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     public void clearCoolDown(Player p) {
-        if (cd1.get(p) != null) {
-            cd1.remove(p);
+        p.setLevel(0);
+        p.setExp(0);
+        if (coolDown.get(p) != null) {
+            coolDown.get(p).set(0, 0L);
+            coolDown.get(p).set(1, 0L);
         }
+        /*
         if (cd2.get(p) != null) {
             cd2.remove(p);
         }
+
+         */
     }
 
-    public boolean checkCoolDown(Player p, HashMap<Player, Long> coolDownMap, long coolDown) {
-        if (coolDownMap.get(p) == null) {
-            coolDownMap.put(p, getTime(world));
+    public boolean checkCoolDown(Player p, long cd) {
+        if (coolDown.get(p).get(0) == 0) {
+            coolDown.get(p).set(0, cd);
+            coolDown.get(p).set(1, cd);
             return true;
         } else {
-            long timeLapsed = getTime(world) - coolDownMap.get(p);
-            if (timeLapsed < coolDown) {
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§4§l技能冷却中！ 还剩 §3§l" + (int) ((coolDown - timeLapsed) / 20) + " §4§l秒"));
-                return false;
-            } else {
-                coolDownMap.put(p, getTime(world));
-                return true;
-            }
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§4§l技能冷却中！"));
+            return false;
         }
     }
 }
