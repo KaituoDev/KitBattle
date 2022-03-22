@@ -74,7 +74,7 @@ public class KitBattleGame extends Game implements Listener {
         }, 1,1 );
         //cd2 = new HashMap<Player, Long>();
         initGame(plugin, "KitBattle", "§a职业战争", 0, null, null, null,
-                null, null, new BoundingBox(-16, 64, 1966, 15, 88, 2017));
+                null, null, new BoundingBox(-100, 0, 900, 100, 127, 1100));
     }
 
     public static KitBattleGame getInstance() {
