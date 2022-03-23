@@ -74,7 +74,7 @@ public class KitBattleGame extends Game implements Listener {
         }, 1,1 );
         //cd2 = new HashMap<Player, Long>();
         initGame(plugin, "KitBattle", "§a职业战争", 0, null, null, null,
-                null, null, new BoundingBox(-100, 0, 900, 100, 127, 1100));
+                null, null, new BoundingBox(-300, -64, 700, 300, 320, 1300));
     }
 
     public static KitBattleGame getInstance() {
@@ -444,6 +444,16 @@ public class KitBattleGame extends Game implements Listener {
     public void preventDropping(PlayerDropItemEvent pdie) {
         if (players.contains(pdie.getPlayer())) {
             pdie.setCancelled(true);
+        }
+    }
+
+
+    @EventHandler
+    public void cancelExplosion(EntityExplodeEvent eee) {
+        if (eee.getEntity() instanceof Fireball) {
+            if (eee.getEntity().getScoreboardTags().contains("kitBattleMage")) {
+                eee.setCancelled(true);
+            }
         }
     }
 
