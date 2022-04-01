@@ -1,5 +1,6 @@
-package tech.yfshadaow;
+package fun.kaituo;
 
+import fun.kaituo.event.PlayerChangeGameEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -27,7 +28,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 import java.util.*;
 
-import static tech.yfshadaow.GameUtils.world;
+import static fun.kaituo.GameUtils.world;
 
 public class KitBattleGame extends Game implements Listener {
     private static final KitBattleGame instance = new KitBattleGame((KitBattle) Bukkit.getPluginManager().getPlugin("KitBattle"));
@@ -73,8 +74,7 @@ public class KitBattleGame extends Game implements Listener {
             }
         }, 1,1 );
         //cd2 = new HashMap<Player, Long>();
-        initGame(plugin, "KitBattle", "§a职业战争", 0, null, null, null,
-                null, null, new BoundingBox(-300, -64, 700, 300, 320, 1300));
+        initializeGame(plugin, "KitBattle", "§a职业战争", new Location(world, 0,201,1000), new BoundingBox(-300, -64, 700, 300, 320, 1300));
     }
 
     public static KitBattleGame getInstance() {
@@ -600,7 +600,7 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     @Override
-    protected void initGameRunnable() {
+    protected void initializeGameRunnable() {
         gameRunnable = () -> {
             Bukkit.getPluginManager().registerEvents(this, plugin);
         };

@@ -1,4 +1,4 @@
-package tech.yfshadaow;
+package fun.kaituo;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

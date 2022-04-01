@@ -1,6 +1,6 @@
 api-version: 1.13
 name: KitBattle
-main: tech.yfshadaow.KitBattle
+main: fun.kaituo.KitBattle
 version: 1.0
 author: YFshadaow
 depend: [GameUtils]

@@ -1,6 +1,7 @@
-package tech.yfshadaow;
+package fun.kaituo;
 
 
+import fun.kaituo.event.PlayerChangeGameEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-import static tech.yfshadaow.GameUtils.*;
+import static fun.kaituo.GameUtils.*;
 
 public class KitBattle extends JavaPlugin {
     List<Player> players = new ArrayList<>();
