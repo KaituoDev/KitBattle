@@ -604,11 +604,9 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     private double getCoolDownReductionMultiplier() {
-        if (world.getBlockAt(3, 202, 1000).isBlockPowered()) {
-            Bukkit.broadcastMessage("是无限火力");
+        if (world.getBlockAt(4, 202, 1000).isBlockPowered()) {
             return  (1 - c.getDouble("cooldown-reduction-multiplier"));
         } else {
-            Bukkit.broadcastMessage("不是无限火力");
             return 1;
         }
     }
