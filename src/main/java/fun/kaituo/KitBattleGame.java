@@ -577,8 +577,10 @@ public class KitBattleGame extends Game implements Listener {
             coolDown.get(p).set(0, 0L);
             coolDown.get(p).set(1, 0L);
         }
-        for (int id : playerTaskIds.get(p)) {
-            Bukkit.getScheduler().cancelTask(id);
+        if (playerTaskIds.get(p) != null) {
+            for (int id : playerTaskIds.get(p)) {
+                Bukkit.getScheduler().cancelTask(id);
+            }
         }
         playerTaskIds.get(p).clear();
         /*
