@@ -222,7 +222,7 @@ public class KitBattleGame extends Game implements Listener {
             case "裂地":
                 Player victim = getNearestPlayer(executor, 6);
                 if (victim != null) {
-                    if (checkCoolDown(executor, (long)(800 * getCoolDownReductionMultiplier()))) {
+                    if (checkCoolDown(executor, (long)(c.getLong("smasher.cd") * getCoolDownReductionMultiplier()))) {
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 49));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 4));
                         executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 40, 0));
@@ -242,18 +242,18 @@ public class KitBattleGame extends Game implements Listener {
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
                             executor.setVelocity(new Vector(0,0,0));
                             executor.teleport(victim);
-                            world.createExplosion(victim.getLocation(), 1, false, false, executor);
+                            world.createExplosion(victim.getLocation(), (float) c.getDouble("smasher.explosion-power"), false, false, executor);
                         }, 20);
                     }
                 }
                 break;
             case "制毒":
                 if (!executor.getInventory().contains(Material.TIPPED_ARROW)) {
-                    if (checkCoolDown(executor, (long)(300 * getCoolDownReductionMultiplier()))) {
+                    if (checkCoolDown(executor, (long)(c.getLong("elf.cd") * getCoolDownReductionMultiplier()))) {
                         ItemStack arrow = new ItemStack(Material.TIPPED_ARROW);
                         PotionMeta meta = (PotionMeta)arrow.getItemMeta();
                         meta.setBasePotionData(new PotionData(PotionType.POISON));
-                        meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, 40, 2), true);
+                        meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, c.getInt("elf.poison-duration"), c.getInt("elf.poison-amplifier")), true);
                         arrow.setItemMeta(meta);
                         executor.getInventory().addItem(arrow);
                         world.playSound(executor.getLocation(), Sound.BLOCK_GRASS_BREAK , SoundCategory.PLAYERS, soundVolume, 1);
@@ -262,11 +262,11 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "剑技":
-                Set<Player> victims = getNearbyPlayers(executor,3);
+                Set<Player> victims = getNearbyPlayers(executor,c.getDouble("blademaster.radius"));
                 if (!victims.isEmpty()) {
-                    if (checkCoolDown(executor, (long)(200 * getCoolDownReductionMultiplier()))) {
+                    if (checkCoolDown(executor, (long)(c.getLong("blademaster.cd") * getCoolDownReductionMultiplier()))) {
                         for (Player v : victims) {
-                            Arrow a = executor.launchProjectile(Arrow.class, new Vector(0, -2, 0));
+                            Arrow a = executor.launchProjectile(Arrow.class, new Vector(0, c.getDouble("blademaster.arrow-downward-speed"), 0));
                             Location l = v.getLocation().clone();
                             l.setY(l.getY() + 2.5 );
                             a.teleport(l);
