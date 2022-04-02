@@ -3,7 +3,7 @@ name: KitBattle
 main: fun.kaituo.KitBattle
 version: 1.0
 author: YFshadaow
-depend: [GameUtils]
+depend: [GameUtils,ProtocolLib]
 commands:
   kbspawn:
     description: spawn in kitbattle
