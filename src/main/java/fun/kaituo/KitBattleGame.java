@@ -592,7 +592,6 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     public boolean checkCoolDown(Player p, long cd) {
-        p.sendMessage("cd为" + cd + "游戏刻");
         if (coolDown.get(p).get(0) == 0) {
             coolDown.get(p).set(0, cd);
             coolDown.get(p).set(1, cd);
