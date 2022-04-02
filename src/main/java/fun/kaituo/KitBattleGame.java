@@ -581,8 +581,8 @@ public class KitBattleGame extends Game implements Listener {
             for (int id : playerTaskIds.get(p)) {
                 Bukkit.getScheduler().cancelTask(id);
             }
+            playerTaskIds.get(p).clear();
         }
-        playerTaskIds.get(p).clear();
         /*
         if (cd2.get(p) != null) {
             cd2.remove(p);
