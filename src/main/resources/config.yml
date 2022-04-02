@@ -1,0 +1,5 @@
+cooldown-reduction-multiplier: 0.8
+stormknight:
+  first-arrow-downward-speed: -2.0
+  second-arrow-downward-speed: -3.0
+  third-arrow-downward-speed: -4.0

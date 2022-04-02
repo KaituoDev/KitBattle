@@ -22,6 +22,7 @@ public class KitBattle extends JavaPlugin {
     }
 
     public void onEnable() {
+        saveDefaultConfig();
         registerGame(getGameInstance());
         KitBattleGame.getInstance().startGame();
         getCommand("kbspawn").setExecutor(new KitBattleCommandExecutor(getGameInstance().spawnLocations, players));
