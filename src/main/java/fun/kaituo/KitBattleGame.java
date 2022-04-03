@@ -278,7 +278,7 @@ public class KitBattleGame extends Game implements Listener {
                 }
                 break;
             case "火球术":
-                if (checkCoolDown(executor, (long)(280 * getCoolDownReductionMultiplier()))) {
+                if (checkCoolDown(executor, (long)(c.getLong("mage.cd") * getCoolDownReductionMultiplier()))) {
                     //Fireball fireball = executor.launchProjectile(Fireball.class, executor.getEyeLocation().getDirection().normalize().multiply(0.8));
                     Fireball fireball = (Fireball) world.spawnEntity(executor.getEyeLocation().clone().add(executor.getEyeLocation().getDirection()), EntityType.FIREBALL, false);
                     fireball.setShooter(executor);
@@ -392,9 +392,10 @@ public class KitBattleGame extends Game implements Listener {
                 break;
             case "唤起风暴":
                 if (checkCoolDown(executor, (long)(300 * getCoolDownReductionMultiplier()))) {
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 4, 2));
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 4, 2));
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 4, 250));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3, 2));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 3, 2));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 3, 250));
+                    world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 10, 0);
                     playerTaskIds.get(executor).add(Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         for (Player v : getNearbyPlayers(executor, 3)) {
                             Arrow a = executor.launchProjectile(Arrow.class, new Vector(0, c.getDouble("stormknight.first-arrow-downward-speed"), 0));
@@ -403,7 +404,7 @@ public class KitBattleGame extends Game implements Listener {
                             a.teleport(l);
                             broadcastEntityDestroyPacket(a);
                         }
-                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), particleNumber, 2, 2, 2);
+                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), 50, 2, 2, 2);
                     }, 20).getTaskId());
                     playerTaskIds.get(executor).add(Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         for (Player v : getNearbyPlayers(executor, 3)) {
@@ -413,7 +414,8 @@ public class KitBattleGame extends Game implements Listener {
                             a.teleport(l);
                             broadcastEntityDestroyPacket(a);
                         }
-                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), particleNumber, 3, 3, 3);
+                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), 75, 3, 3, 3);
+                        world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 10, 0);
                     }, 40).getTaskId());
                     playerTaskIds.get(executor).add(Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         for (Player v : getNearbyPlayers(executor, 3)) {
@@ -423,7 +425,7 @@ public class KitBattleGame extends Game implements Listener {
                             a.teleport(l);
                             broadcastEntityDestroyPacket(a);
                         }
-                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), particleNumber, 4, 4, 4);
+                        world.spawnParticle(Particle.CLOUD, executor.getLocation(), 100, 4, 4, 4);
                     }, 60).getTaskId());
                 }
         }

@@ -15,4 +15,6 @@ blademaster:
   cd: 200
   radius: 3
   arrow-downward-speed: -2
+mage:
+  cd: 280
 
