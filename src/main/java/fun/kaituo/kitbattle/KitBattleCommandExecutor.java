@@ -1,4 +1,4 @@
-package fun.kaituo;
+package fun.kaituo.kitbattle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

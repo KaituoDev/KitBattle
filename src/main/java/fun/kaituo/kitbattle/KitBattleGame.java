@@ -1,10 +1,11 @@
-package fun.kaituo;
+package fun.kaituo.kitbattle;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
-import fun.kaituo.event.PlayerChangeGameEvent;
+import fun.kaituo.gameutils.Game;
+import fun.kaituo.gameutils.event.PlayerChangeGameEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -33,7 +34,6 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 import java.util.*;
 
-import static fun.kaituo.GameUtils.world;
 
 public class KitBattleGame extends Game implements Listener {
     private static final KitBattleGame instance = new KitBattleGame((KitBattle) Bukkit.getPluginManager().getPlugin("KitBattle"));
@@ -87,10 +87,11 @@ public class KitBattleGame extends Game implements Listener {
             }
         }, 1,1 );
         //cd2 = new HashMap<Player, Long>();
-        initializeGame(plugin, "KitBattle", "§a职业战争", new Location(world, 0,201,1000), new BoundingBox(-300, -64, 700, 300, 320, 1300));
+        initializeGame(plugin, "KitBattle", "§a职业战争", new Location(world, 0.5,201,1000.5));
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             pm = ProtocolLibrary.getProtocolManager();
+            Bukkit.getPluginManager().registerEvents(this, plugin);
         });
     }
 
@@ -502,11 +503,6 @@ public class KitBattleGame extends Game implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerChangeGame(PlayerChangeGameEvent pcge) {
-        players.remove(pcge.getPlayer());
-        clearCoolDownAndTask(pcge.getPlayer());
-    }
 
     @EventHandler
     public void clearKills(PlayerInteractEvent pie) {
@@ -530,19 +526,24 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     @Override
-    protected void initializeGameRunnable() {
-        gameRunnable = () -> {
-            Bukkit.getPluginManager().registerEvents(this, plugin);
-        };
-    }
-
-    @Override
-    protected void savePlayerQuitData(Player p) throws IOException {
+    protected void quit(Player p) throws IOException {
         players.remove(p);
     }
 
     @Override
-    protected void rejoin(Player player) {
+    protected boolean rejoin(Player player) {
+        return false;
+    }
+
+    @Override
+    protected boolean join(Player player) {
+        player.setBedSpawnLocation(hubLocation, true);
+        player.teleport(hubLocation);
+        return true;
+    }
+
+    @Override
+    protected void forceStop() {
 
     }
 
