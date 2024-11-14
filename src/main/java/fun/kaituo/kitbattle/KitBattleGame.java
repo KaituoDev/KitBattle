@@ -5,17 +5,32 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.Game;
-import fun.kaituo.gameutils.event.PlayerChangeGameEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.EvokerFangs;
+import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -32,7 +47,11 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 public class KitBattleGame extends Game implements Listener {
@@ -317,7 +336,11 @@ public class KitBattleGame extends Game implements Listener {
                 if (target2 != null) {
                     if (checkCoolDown(executor, (long)(240 * getCoolDownReductionMultiplier()))) {
                         Location loc1 = executor.getLocation();
+                        loc1.setPitch(target2.getLocation().getPitch());
+                        loc1.setYaw(target2.getLocation().getYaw());
                         Location loc2 = target2.getLocation();
+                        loc2.setPitch(executor.getLocation().getPitch());
+                        loc2.setYaw(executor.getLocation().getYaw());
                         executor.teleport(loc2);
                         target2.teleport(loc1);
                         world.playSound(executor.getLocation(), Sound.ENTITY_SHULKER_TELEPORT , SoundCategory.PLAYERS, soundVolume, 1);
@@ -518,6 +541,7 @@ public class KitBattleGame extends Game implements Listener {
                 players.add(pie.getPlayer());
             }
             pie.getPlayer().setScoreboard(kitBattle);
+            Bukkit.dispatchCommand(pie.getPlayer(),"zmenu open zmenu:kitbattle");
         } else if (x == 0 && y == 203 && z == 997) {
             kitBattle.getObjective("kitBattleKills").unregister();
             kitBattle.registerNewObjective("kitBattleKills", "dummy", "职业战争击败榜");

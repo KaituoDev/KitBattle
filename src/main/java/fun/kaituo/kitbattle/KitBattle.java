@@ -1,12 +1,8 @@
 package fun.kaituo.kitbattle;
 
 
-
-import fun.kaituo.gameutils.Game;
 import fun.kaituo.gameutils.GameUtils;
-import fun.kaituo.gameutils.event.PlayerChangeGameEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,7 +24,7 @@ public class KitBattle extends JavaPlugin {
         gameUtils = (GameUtils) Bukkit.getPluginManager().getPlugin("GameUtils");
         saveDefaultConfig();
         gameUtils.registerGame(getGameInstance());
-        getCommand("kbspawn").setExecutor(new KitBattleCommandExecutor(getGameInstance().spawnLocations, players));
+        getCommand("kbspawn").setExecutor(new KitBattleCommandExecutor(gameUtils, getGameInstance().spawnLocations, players));
     }
 
     public void onDisable() {
