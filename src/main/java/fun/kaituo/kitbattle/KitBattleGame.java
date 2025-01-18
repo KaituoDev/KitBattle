@@ -132,17 +132,36 @@ public class KitBattleGame extends Game implements Listener {
         Player killer = pde.getEntity().getKiller();
 
         clearCoolDownAndTask(player);
-        if (killer == null) {
+        if (killer == null) { //判定杀手是否是玩家
+            if (pde.getEntity().getLocation().getY() <= -64.0) { //判定是否是虚空致死
+                Score score = kitBattle.getObjective("kitBattleKills").getScore(player);
+                if (score.getScore() >= 1) {
+                    score.setScore(score.getScore() - 1); //给虚空死亡者扣分
+                }
+                player.spigot().sendMessage(ChatMessageType.CHAT, new TextComponent("§7§o你被影风肘下了虚空！ §m这导致你的击杀数降低了......"));
+            }
+            else {
+                Score score = kitBattle.getObjective("kitBattleKills").getScore(player);
+                if (score.getScore() >= 1) {
+                    score.setScore(score.getScore() - 1); //给自杀者扣分
+                }
+                player.spigot().sendMessage(ChatMessageType.CHAT, new TextComponent("§7§o你化为了虚无, §m包括你的战绩......"));
+            }
             return;
-        } //不是玩家
-        //if (!player.getScoreboardTags().contains("zyzz")) { return; }//死亡者没有tag
+        }
+        //if (!player.getScoreboardTags().contains("zyzz")) { return; } //死亡者没有tag
 
-        if (player.equals(killer)) {
+        if (player.equals(killer)) { //自杀判定
+            Score score = kitBattle.getObjective("kitBattleKills").getScore(player);
+            if (score.getScore() >= 1) {
+                score.setScore(score.getScore() - 1); //给自杀者扣分
+            }
+            player.spigot().sendMessage(ChatMessageType.CHAT, new TextComponent("§7§o你化为了虚无, §m包括你的战绩......"));
             return;
-        } //自杀判定
+        }
         if (players.contains(killer)) {
             Score score = kitBattle.getObjective("kitBattleKills").getScore(killer);
-            score.setScore(score.getScore() + 1);//加分
+            score.setScore(score.getScore() + 1); //给杀手加分
         } else {
             return;//不处于游戏中
         }
@@ -220,6 +239,7 @@ public class KitBattleGame extends Game implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent pie) {
+
         if (!pie.getAction().equals(Action.RIGHT_CLICK_AIR) && !pie.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             return;
         }// 不是右键
@@ -309,8 +329,9 @@ public class KitBattleGame extends Game implements Listener {
                 break;
             case "英魂":
                 if (checkCoolDown(executor, (long)(999 * getCoolDownReductionMultiplier()))) {
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 999999, 1));
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 65536, 1));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 65536, 1));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 65536, 2));
                     world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, soundVolume, 1);
                     world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
                 }
@@ -363,7 +384,7 @@ public class KitBattleGame extends Game implements Listener {
             case "唤魔":
                 Player target3 = getNearestPlayer(executor, 200);
                 if (target3 != null) {
-                    if (checkCoolDown(executor, (long)(600 * getCoolDownReductionMultiplier()))) {
+                    if (checkCoolDown(executor, (long)(300 * getCoolDownReductionMultiplier()))) {
                         target3.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
                         target3.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 0));
                         Location l = target3.getLocation();
@@ -416,9 +437,11 @@ public class KitBattleGame extends Game implements Listener {
                 break;
             case "唤起风暴":
                 if (checkCoolDown(executor, (long)(300 * getCoolDownReductionMultiplier()))) {
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3, 2));
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 3, 2));
-                    executor.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 3, 250));
+
+                    //executor.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 3, 2));
+                    //executor.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 3, 2));
+                    //executor.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 3, 250));
+                    
                     world.playSound(executor.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 10, 0);
                     playerTaskIds.get(executor).add(Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         for (Player v : getNearbyPlayers(executor, 3)) {
@@ -452,6 +475,13 @@ public class KitBattleGame extends Game implements Listener {
                         world.spawnParticle(Particle.CLOUD, executor.getLocation(), 100, 4, 4, 4);
                     }, 60).getTaskId());
                 }
+            case "突刺":
+                if (checkCoolDown(executor, (long)(500 * getCoolDownReductionMultiplier()))) {
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 60, 1));
+                    executor.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 40, 4));
+                    world.spawnParticle(Particle.VILLAGER_ANGRY, executor.getLocation(), particleNumber, 3, 3, 3);
+                }
+                break;
         }
     }
 
@@ -629,7 +659,7 @@ public class KitBattleGame extends Game implements Listener {
         }
     }
 
-    private double getCoolDownReductionMultiplier() {
+    private double getCoolDownReductionMultiplier() { //用于分别普通模式和无限火力模式
         if (world.getBlockAt(4, 202, 1000).isBlockPowered()) {
             return  (1 - c.getDouble("cooldown-reduction-multiplier"));
         } else {

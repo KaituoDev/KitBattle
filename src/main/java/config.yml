@@ -1,0 +1,20 @@
+cooldown-reduction-multiplier: 0.6
+stormknight:
+  cd: 300
+  first-arrow-downward-speed: -2
+  second-arrow-downward-speed: -3
+  third-arrow-downward-speed: -4
+smasher:
+  cd: 800
+  explosion-power: 1
+elf:
+  cd: 300
+  poison-duration: 40
+  poison-amplifier:
+blademaster:
+  cd: 200
+  radius: 3
+  arrow-downward-speed: -2
+mage:
+  cd: 280
+

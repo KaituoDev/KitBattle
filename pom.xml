@@ -16,34 +16,41 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <build>
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ftp</artifactId>
-            </extension>
-        </extensions>
+    <distributionManagement>
+        <repository>
+            <id>kaituo-repo</id>
+            <url>https://maven.kaituo.fun/maven-snapshots</url>
+        </repository>
+    </distributionManagement>
 
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>wagon-maven-plugin</artifactId>
-                <version>2.0.2</version>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
-                        <id>upload-assembly</id>
+                        <id>upload-to-sftp</id>
                         <phase>install</phase>
                         <goals>
-                            <goal>upload-single</goal>
+                            <goal>exec</goal>
                         </goals>
-                        <configuration>
-                            <serverId>kaituo-minigame-ftp</serverId> <!-- references the server declaration -->
-                            <fromFile>${project.build.directory}/${project.artifactId}-${project.version}.jar</fromFile>
-                            <url>ftp://mc.kaituo.fun:22000</url>
-                            <toFile>${project.artifactId}.jar</toFile>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <executable>scp</executable>
+                    <arguments>
+                        <argument>-o</argument>
+                        <argument>StrictHostKeyChecking=no</argument>
+                        <argument>-P</argument>
+                        <argument>22001</argument>
+                        <argument>-i</argument>
+                        <argument>${user.home}\.ssh\id</argument>
+                        <argument>${project.build.directory}/${project.artifactId}-${project.version}.jar</argument>
+                        <argument>root@mc.kaituo.fun:/</argument>
+                    </arguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -87,8 +94,8 @@
 
     <repositories>
         <repository>
-            <id>Minigames-Kaituo</id>
-            <url>https://maven.kaituo.fun/maven-releases/</url>
+            <id>kaituo-repo</id>
+            <url>https://maven.kaituo.fun/maven-snapshot/</url>
         </repository>
         <repository>
             <id>spigotmc-repo</id>
@@ -101,6 +108,11 @@
         <repository>
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/repository/public/</url>
+        </repository>
+        <repository>
+            <id>kaituo-maven</id>
+            <name>Kaituo Maven</name>
+            <url>https://maven.kaituo.fun/repository/url/</url>
         </repository>
     </repositories>
 
