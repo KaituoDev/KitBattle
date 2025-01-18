@@ -6,7 +6,7 @@
 
     <groupId>fun.kaituo.kitbattle</groupId>
     <artifactId>KitBattle</artifactId>
-    <version>1.1</version>
+    <version>1.2.2</version>
     <packaging>jar</packaging>
 
     <name>KitBattle</name>
