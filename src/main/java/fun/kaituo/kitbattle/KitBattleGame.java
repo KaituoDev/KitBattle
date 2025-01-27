@@ -26,13 +26,10 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SuspiciousStewMeta;
@@ -238,7 +235,27 @@ public class KitBattleGame extends Game implements Listener {
     }
 
     @EventHandler
+    public void BanChorusFruitInLobby(PlayerItemConsumeEvent pice) {
+        if (players.contains(pice.getPlayer())) {
+            if (pice.getItem().getType().equals(Material.CHORUS_FRUIT)) {
+                if (pice.getPlayer().getLocation().getY() >= 120) {
+                    pice.getPlayer().sendMessage("§c禁止在地图之外的位置吃紫颂果！");
+                    pice.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent pie) {
+
+        if (pie.getPlayer().getItemInHand().getType().equals(Material.ENDER_PEARL)) {
+            if (pie.getPlayer().getLocation().getY() >= 120) {
+                pie.setCancelled(true);
+                pie.getPlayer().sendMessage("§c禁止在地图之外扔珍珠！");
+                return;
+            }
+        }
 
         if (!pie.getAction().equals(Action.RIGHT_CLICK_AIR) && !pie.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             return;
