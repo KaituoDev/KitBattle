@@ -1,9 +1,11 @@
 api-version: 1.13
 name: KitBattle
 main: fun.kaituo.kitbattle.KitBattle
-version: 1.1
+version: 2.0
 author: YFshadaow
 depend: [GameUtils,ProtocolLib]
+softdepend: [Lobby]
 commands:
-  kbspawn:
-    description: spawn in kitbattle
+  kitbattlego:
+    description: Choose a kit and spawns the player in the arena
+    usage: /kitbattlego <Kit Name>
