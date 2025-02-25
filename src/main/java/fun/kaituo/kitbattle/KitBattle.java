@@ -263,8 +263,8 @@ public class KitBattle extends Game implements Listener {
     public void onEnable() {
         instance = this;
         super.onEnable();
+        saveDefaultConfig();
         updateExtraInfo("§e职业战争", getLoc("hub"));
-        setState(RunningState.INSTANCE);
         initSigns();
         initSpawnLocs();
         registerCommand();
