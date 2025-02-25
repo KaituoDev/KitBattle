@@ -1,5 +1,9 @@
 package fun.kaituo.kitbattle;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
@@ -9,12 +13,12 @@ import fun.kaituo.kitbattle.kits.BladeMaster;
 import fun.kaituo.kitbattle.kits.Kit;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
-import fun.kaituo.kitbattle.state.RunningState;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,6 +49,9 @@ public class KitBattle extends Game implements Listener {
         return instance;
     }
 
+    public static final int PARTICLE_COUNT = 30;
+    public static final float SOUND_VOLUME = 1.0f;
+
     public final Set<UUID> playerIds = new HashSet<>();
     public final Map<UUID, PlayerData> playerIdDataMap = new HashMap<>();
 
@@ -59,11 +66,63 @@ public class KitBattle extends Game implements Listener {
     private InfiniteFirepowerSign infiniteFirepowerSign;
     private ItemStack backItem;
 
-    public void toArena(Player p, Kit kit) {
+    private ProtocolManager protocolManager;
+
+    public static void reset(Player p) {
         for (PotionEffect effect : p.getActivePotionEffects()) {
             p.removePotionEffect(effect.getType());
         }
+        p.getInventory().clear();
+        p.setHealth(20);
+        p.setFoodLevel(20);
+        p.setSaturation(5);
+        p.setLevel(0);
+        p.setExp(0);
+    }
 
+    public Set<Player> getNearbyEnemies(Player p, double radius) {
+        Set<Player> result = new HashSet<>();
+        for (Entity e : p.getNearbyEntities(radius,radius,radius)) {
+            if (p.equals(e)) {
+                continue;
+            }
+            if (!playerIds.contains(e.getUniqueId())) {
+                continue;
+            }
+            result.add((Player) e);
+        }
+        return result;
+    }
+
+
+    public Player getNearestEnemy(Player p, double radius) {
+        Player result = null;
+        for (Entity e : p.getNearbyEntities(radius,70,radius)) {
+            if (p.equals(e)) {
+                continue;
+            }
+            if (!playerIds.contains(e.getUniqueId())) {
+                continue;
+            }
+            if (result == null) {
+                result = (Player) e;
+            } else if (p.getLocation().distance(e.getLocation()) < p.getLocation().distance(result.getLocation())) {
+                result = (Player) e;
+            }
+        }
+        return result;
+    }
+
+    public void fakeEntityDestroy(Entity e) {
+        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+        List<Integer> idList = new ArrayList<>();
+        idList.add(e.getEntityId());
+        packet.getIntLists().write(0, idList);
+        protocolManager.broadcastServerPacket(packet);
+    }
+
+    public void toArena(Player p, Kit kit) {
+        reset(p);
         kit.applyInventory(p);
         kit.applyPotionEffects(p);
         p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
@@ -77,14 +136,8 @@ public class KitBattle extends Game implements Listener {
     }
 
     public void toHub(Player p) {
-        for (PotionEffect effect : p.getActivePotionEffects()) {
-            p.removePotionEffect(effect.getType());
-        }
-        p.setLevel(0);
-        p.setExp(0);
-        p.getInventory().clear();
+        reset(p);
         p.getInventory().addItem(getMenu());
-        p.setHealth(20);
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
         p.teleport(location);
@@ -212,6 +265,7 @@ public class KitBattle extends Game implements Listener {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void addPlayer(Player p) {
         playerIds.add(p.getUniqueId());
         p.setBedSpawnLocation(location, true);
@@ -231,13 +285,7 @@ public class KitBattle extends Game implements Listener {
             data.save(p);
         }
         playerIds.remove(p.getUniqueId());
-        p.getInventory().clear();
-        for (PotionEffect effect : p.getActivePotionEffects()) {
-            p.removePotionEffect(effect.getType());
-        }
-        p.setHealth(20);
-        p.setLevel(0);
-        p.setExp(0);
+        reset(p);
     }
 
     @Override
@@ -271,6 +319,7 @@ public class KitBattle extends Game implements Listener {
         registerKits();
         cooldownReductionMultiplier = getConfig().getDouble("cooldown-reduction-multiplier");
         backItem = getItem("back");
+        protocolManager = ProtocolLibrary.getProtocolManager();
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 

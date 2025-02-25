@@ -21,5 +21,7 @@ public interface Kit {
 
     default void applyPotionEffects(Player p) {}
 
-    default void castSkill(Player p) {}
+    default boolean castSkill(Player p) {
+        return false;
+    }
 }

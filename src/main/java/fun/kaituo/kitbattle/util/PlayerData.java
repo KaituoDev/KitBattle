@@ -46,13 +46,14 @@ public class PlayerData {
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§4§l技能冷却中！"));
             return;
         }
-        kit.castSkill(p);
-        if (KitBattle.inst().isInfiniteFirepower()) {
-            maxCooldownTicks = (long) (kit.getCooldownTicks() * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
-        } else {
-            maxCooldownTicks = kit.getCooldownTicks();
+        if (kit.castSkill(p)) {
+            if (KitBattle.inst().isInfiniteFirepower()) {
+                maxCooldownTicks = (long) (kit.getCooldownTicks() * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
+            } else {
+                maxCooldownTicks = kit.getCooldownTicks();
+            }
+            cooldownTicks = maxCooldownTicks;
         }
-        cooldownTicks = maxCooldownTicks;
     }
 
     public void save(Player p) {
