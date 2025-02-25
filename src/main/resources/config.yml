@@ -1,5 +1,5 @@
 cooldown-reduction-multiplier: 0.8
-stormknight:
+storm-knight:
   cd: 300
   first-arrow-downward-speed: -2
   second-arrow-downward-speed: -3
@@ -11,7 +11,7 @@ elf:
   cd: 300
   poison-duration: 40
   poison-amplifier:
-blademaster:
+blade-master:
   cd: 200
   radius: 3
   arrow-downward-speed: -2
