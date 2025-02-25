@@ -17,6 +17,8 @@ public class PlayerData {
     private Location location;
     private Collection<PotionEffect> effects;
     private double health;
+    private int foodLevel;
+    private float saturation;
     private GameInventory inventory;
     private long maxCooldownTicks;
     private long cooldownTicks;
@@ -57,6 +59,8 @@ public class PlayerData {
         location = p.getLocation();
         effects = p.getActivePotionEffects();
         health = p.getHealth();
+        foodLevel = p.getFoodLevel();
+        saturation = p.getSaturation();
         inventory = new GameInventory(p);
     }
 
@@ -64,6 +68,8 @@ public class PlayerData {
         p.teleport(location);
         p.addPotionEffects(effects);
         p.setHealth(health);
+        p.setFoodLevel(foodLevel);
+        p.setSaturation(saturation);
         inventory.apply(p);
     }
 }
