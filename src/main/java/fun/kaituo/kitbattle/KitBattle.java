@@ -296,8 +296,8 @@ public class KitBattle extends Game implements Listener {
     @Override
     public void tick() {
         for (UUID uuid : playerIds) {
-            // If player is not in the arena
             PlayerData data = playerIdDataMap.get(uuid);
+            // If player is not in the arena
             if (data == null) {
                 return;
             }
@@ -326,7 +326,7 @@ public class KitBattle extends Game implements Listener {
     @Override
     public void onDisable() {
         super.onDisable();
-        for (UUID uuid : playerIds) {
+        for (UUID uuid : new ArrayList<>(playerIds)) {
             Player p = Bukkit.getPlayer(uuid);
             assert p != null;
             removePlayer(p);
