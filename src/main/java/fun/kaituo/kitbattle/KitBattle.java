@@ -7,10 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kits.Batter;
-import fun.kaituo.kitbattle.kits.BlackWolf;
-import fun.kaituo.kitbattle.kits.BladeMaster;
-import fun.kaituo.kitbattle.kits.Kit;
+import fun.kaituo.kitbattle.kits.*;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
@@ -218,6 +215,7 @@ public class KitBattle extends Game implements Listener {
         registerKit(new Batter());
         registerKit(new BlackWolf());
         registerKit(new BladeMaster());
+        registerKit(new Elf());
     }
 
     @EventHandler
