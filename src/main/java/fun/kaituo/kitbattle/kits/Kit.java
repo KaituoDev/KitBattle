@@ -7,7 +7,12 @@ import org.bukkit.entity.Player;
 public interface Kit {
 
     default long getCooldownTicks() {
-        return -1;
+        long coolDownTicks = KitBattle.inst().getConfig().getLong("kits-config." + this.getClass().getSimpleName() + ".cd");
+        // If the entry does not exist, getLong() actually returns 0
+        if (coolDownTicks == 0) {
+            return -1;
+        }
+        return coolDownTicks;
     }
 
     default void applyInventory(Player p) {
