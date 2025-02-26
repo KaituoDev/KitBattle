@@ -42,7 +42,11 @@ public class PlayerData {
     }
 
     public void tryCastSkill(Player p) {
-        if (cooldownTicks != 0) {
+        if (cooldownTicks < 0) {
+            p.sendMessage("§c你没有技能！");
+            return;
+        }
+        if (cooldownTicks > 0) {
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§4§l技能冷却中！"));
             return;
         }
