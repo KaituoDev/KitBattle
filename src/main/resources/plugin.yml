@@ -2,7 +2,7 @@ api-version: 1.13
 name: KitBattle
 main: fun.kaituo.kitbattle.KitBattle
 version: 2.0
-author: YFshadaow
+author: YFshadaow & APairOfMoons
 depend: [GameUtils,ProtocolLib]
 softdepend: [Lobby]
 commands:
