@@ -42,7 +42,7 @@ public class PlayerData {
     }
 
     public void tryCastSkill(Player p) {
-        if (cooldownTicks < 0) {
+        if (maxCooldownTicks == -1) {
             p.sendMessage("§c你没有技能！");
             return;
         }
