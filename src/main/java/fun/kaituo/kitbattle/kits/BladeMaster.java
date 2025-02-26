@@ -19,8 +19,8 @@ public class BladeMaster implements Kit {
     private final double skillDamage;
     public BladeMaster() {
         FileConfiguration config = KitBattle.inst().getConfig();
-        skillRadius = config.getDouble("kits-config." + this.getClass().getSimpleName() + ".radius");
-        skillDamage = config.getDouble("kits-config." + this.getClass().getSimpleName() + ".damage");
+        skillRadius = config.getDouble(getConfigPrefix() + "radius");
+        skillDamage = config.getDouble(getConfigPrefix() + "damage");
     }
 
     @Override
