@@ -7,14 +7,30 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kits.*;
+import fun.kaituo.kitbattle.kits.Batter;
+import fun.kaituo.kitbattle.kits.BlackWolf;
+import fun.kaituo.kitbattle.kits.BladeMaster;
+import fun.kaituo.kitbattle.kits.Bower;
+import fun.kaituo.kitbattle.kits.CaveMan;
+import fun.kaituo.kitbattle.kits.Elf;
+import fun.kaituo.kitbattle.kits.Enderman;
+import fun.kaituo.kitbattle.kits.Fencer;
+import fun.kaituo.kitbattle.kits.FireTongue;
+import fun.kaituo.kitbattle.kits.GravityMage;
+import fun.kaituo.kitbattle.kits.Guardian;
+import fun.kaituo.kitbattle.kits.Hysteria;
+import fun.kaituo.kitbattle.kits.Illusionist;
+import fun.kaituo.kitbattle.kits.Jizo;
+import fun.kaituo.kitbattle.kits.Kit;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -28,9 +44,20 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.Criteria;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 import static fun.kaituo.gameutils.util.Misc.getMenu;
 
@@ -75,6 +102,7 @@ public class KitBattle extends Game implements Listener {
         p.setSaturation(5);
         p.setLevel(0);
         p.setExp(0);
+
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -131,6 +159,7 @@ public class KitBattle extends Game implements Listener {
         p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 9, false, false));
         p.teleport(getRandomSpawnLoc());
+        p.playSound(p, Sound.ITEM_ARMOR_EQUIP_GOLD, SOUND_VOLUME, 1);
 
         PlayerData data = new PlayerData(kit);
         playerIdDataMap.put(p.getUniqueId(), data);
@@ -191,12 +220,31 @@ public class KitBattle extends Game implements Listener {
         Bukkit.getPluginManager().registerEvents(recoverOnKillSign, this);
     }
 
+    private void saveKills() {
+        for (String entry : kitBattleBoard.getEntries()) {
+            Score score = killsObjective.getScore(entry);
+            getConfig().set("kills." + entry, score.getScore());
+        }
+        saveConfig();
+    }
+
+    private void loadKills() {
+        ConfigurationSection section = getConfig().getConfigurationSection("kills");
+        if (section == null) {
+            return;
+        }
+        for (String key : section.getKeys(false)) {
+            Score score = killsObjective.getScore(key);
+            score.setScore(section.getInt(key));
+        }
+    }
+
     private void initScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         assert manager != null;
         mainBoard = manager.getMainScoreboard();
         kitBattleBoard = manager.getNewScoreboard();
-        killsObjective = kitBattleBoard.registerNewObjective("kills", Criteria.DUMMY, "击败数");
+        killsObjective = kitBattleBoard.registerNewObjective("kills", Criteria.DUMMY, "击败榜");
         killsObjective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
     }
 
@@ -215,7 +263,17 @@ public class KitBattle extends Game implements Listener {
         registerKit(new Batter());
         registerKit(new BlackWolf());
         registerKit(new BladeMaster());
+        registerKit(new Bower());
+        registerKit(new CaveMan());
         registerKit(new Elf());
+        registerKit(new Enderman());
+        registerKit(new Fencer());
+        registerKit(new FireTongue());
+        registerKit(new GravityMage());
+        registerKit(new Guardian());
+        registerKit(new Hysteria());
+        registerKit(new Illusionist());
+        registerKit(new Jizo());
     }
 
     @EventHandler
@@ -237,8 +295,7 @@ public class KitBattle extends Game implements Listener {
         Score killerScore = killsObjective.getScore(killer.getName());
         killerScore.setScore(killerScore.getScore() + 1);
         if (shouldRecoverOnKill()) {
-            killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 19, false, true));
-            killer.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0, false, true));
+            killer.addPotionEffect(new PotionEffect(PotionEffectType.INSTANT_HEALTH, 1, 99, false, true));
         }
     }
 
@@ -362,6 +419,7 @@ public class KitBattle extends Game implements Listener {
         initSigns();
         initSpawnLocs();
         initScoreboard();
+        loadKills();
         registerCommand();
         registerKits();
         cooldownReductionMultiplier = getConfig().getDouble("cooldown-reduction-multiplier");
@@ -373,6 +431,8 @@ public class KitBattle extends Game implements Listener {
     @Override
     public void onDisable() {
         super.onDisable();
+
+        saveKills();
         Bukkit.getScheduler().cancelTasks(this);
         for (UUID uuid : new ArrayList<>(playerIds)) {
             Player p = Bukkit.getPlayer(uuid);

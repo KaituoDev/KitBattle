@@ -4,6 +4,36 @@ kits-config:
     cd: 200
     radius: 3
     damage: 10
+  Elf:
+    cd: 300
+    poison-duration: 40
+    poison-amplifier: 0
+  Fencer:
+    cd: 200
+    speed-duration: 40
+    speed-amplifier: 4
+    strength-duration: 60
+    strength-amplifier: 1
+  GravityMage:
+    cd: 200
+    slowness-duration: 40
+    slowness-amplifier: 2
+    radius: 3
+  Hysteria:
+    cd: 200
+    speed-duration: 60
+    speed-amplifier: 1
+    strength-duration: 60
+    strength-amplifier: 1
+  Illusionist:
+    cd: 300
+    distance: 20
+  Jizo:
+    cd: 300
+    slowness-duration: 40
+    slowness-amplifier: 0
+    blindness-duration: 40
+    radius: 15
   StormKnight:
     cd: 300
     first-arrow-downward-speed: -2
@@ -12,10 +42,6 @@ kits-config:
   Smasher:
     cd: 800
     explosion-power: 1
-  Elf:
-    cd: 300
-    poison-duration: 40
-    poison-amplifier: 0
   Mage:
     cd: 280
 
