@@ -1,4 +1,8 @@
 cooldown-reduction-multiplier: 0.8
+blade-master:
+  cd: 200
+  radius: 3
+  damage: 10
 storm-knight:
   cd: 300
   first-arrow-downward-speed: -2
@@ -11,10 +15,6 @@ elf:
   cd: 300
   poison-duration: 40
   poison-amplifier:
-blade-master:
-  cd: 200
-  radius: 3
-  arrow-downward-speed: -2
 mage:
   cd: 280
 

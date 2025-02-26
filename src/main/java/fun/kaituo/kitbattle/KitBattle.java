@@ -13,6 +13,7 @@ import fun.kaituo.kitbattle.kits.BladeMaster;
 import fun.kaituo.kitbattle.kits.Kit;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
+import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,21 +24,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static fun.kaituo.gameutils.util.Misc.getMenu;
 
@@ -64,7 +60,11 @@ public class KitBattle extends Game implements Listener {
 
     private double cooldownReductionMultiplier;
     private InfiniteFirepowerSign infiniteFirepowerSign;
+    private RecoverOnKillSign recoverOnKillSign;
     private ItemStack backItem;
+    private Scoreboard mainBoard;
+    private Scoreboard kitBattleBoard;
+    private Objective killsObjective;
 
     private ProtocolManager protocolManager;
 
@@ -80,13 +80,23 @@ public class KitBattle extends Game implements Listener {
         p.setExp(0);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isInArena(Player p) {
+        boolean inGame = playerIds.contains(p.getUniqueId());
+        boolean hasChosenKit = playerIdDataMap.get(p.getUniqueId()) != null;
+        return inGame && hasChosenKit;
+    }
+
     public Set<Player> getNearbyEnemies(Player p, double radius) {
         Set<Player> result = new HashSet<>();
         for (Entity e : p.getNearbyEntities(radius,radius,radius)) {
+            if (!(e instanceof Player)) {
+                continue;
+            }
             if (p.equals(e)) {
                 continue;
             }
-            if (!playerIds.contains(e.getUniqueId())) {
+            if (!isInArena((Player) e)) {
                 continue;
             }
             result.add((Player) e);
@@ -97,17 +107,11 @@ public class KitBattle extends Game implements Listener {
 
     public Player getNearestEnemy(Player p, double radius) {
         Player result = null;
-        for (Entity e : p.getNearbyEntities(radius,70,radius)) {
-            if (p.equals(e)) {
-                continue;
-            }
-            if (!playerIds.contains(e.getUniqueId())) {
-                continue;
-            }
+        for (Player enemy : getNearbyEnemies(p, radius)) {
             if (result == null) {
-                result = (Player) e;
-            } else if (p.getLocation().distance(e.getLocation()) < p.getLocation().distance(result.getLocation())) {
-                result = (Player) e;
+                result = enemy;
+            } else if (p.getLocation().distance(enemy.getLocation()) < p.getLocation().distance(result.getLocation())) {
+                result = enemy;
             }
         }
         return result;
@@ -160,6 +164,10 @@ public class KitBattle extends Game implements Listener {
         return infiniteFirepowerSign.isInfiniteFirepower();
     }
 
+    public boolean shouldRecoverOnKill() {
+        return recoverOnKillSign.shouldRecoverOnKill();
+    }
+
     public double getCooldownReductionMultiplier() {
         return cooldownReductionMultiplier;
     }
@@ -182,6 +190,17 @@ public class KitBattle extends Game implements Listener {
         Bukkit.getPluginManager().registerEvents(new ChooseKitSign(this, getLoc("choose-kit-sign")), this);
         infiniteFirepowerSign = new InfiniteFirepowerSign(this, getLoc("infinite-firepower-sign"));
         Bukkit.getPluginManager().registerEvents(infiniteFirepowerSign, this);
+        recoverOnKillSign = new RecoverOnKillSign(this, getLoc("recover-on-kill-sign"));
+        Bukkit.getPluginManager().registerEvents(recoverOnKillSign, this);
+    }
+
+    private void initScoreboard() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        assert manager != null;
+        mainBoard = manager.getMainScoreboard();
+        kitBattleBoard = manager.getNewScoreboard();
+        killsObjective = kitBattleBoard.registerNewObjective("kills", Criteria.DUMMY, "击败数");
+        killsObjective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
     }
 
     private void registerCommand() {
@@ -202,7 +221,34 @@ public class KitBattle extends Game implements Listener {
     }
 
     @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        Player victim = e.getEntity();
+        Player killer = victim.getKiller();
+        if (!isInArena(victim)) {
+            return;
+        }
+        if (killer == null || victim.equals(killer)) {
+            Score victimScore = killsObjective.getScore(victim.getName());
+            victimScore.setScore(victimScore.getScore() - 1);
+            return;
+        }
+        if (!isInArena(killer)) {
+            killer.sendMessage("§c你不在职业战争中，为何击杀了职业战争玩家？");
+            return;
+        }
+        Score killerScore = killsObjective.getScore(killer.getName());
+        killerScore.setScore(killerScore.getScore() + 1);
+        if (shouldRecoverOnKill()) {
+            killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 19, false, true));
+            killer.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0, false, true));
+        }
+    }
+
+    @EventHandler
     public void onPlayerUseBackItem(PlayerInteractEvent e) {
+        if (!isInArena(e.getPlayer())) {
+            return;
+        }
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) {
             return;
         }
@@ -269,6 +315,7 @@ public class KitBattle extends Game implements Listener {
     public void addPlayer(Player p) {
         playerIds.add(p.getUniqueId());
         p.setBedSpawnLocation(location, true);
+        p.setScoreboard(kitBattleBoard);
 
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
@@ -284,6 +331,7 @@ public class KitBattle extends Game implements Listener {
         if (data != null) {
             data.save(p);
         }
+        p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());
         reset(p);
     }
@@ -315,6 +363,7 @@ public class KitBattle extends Game implements Listener {
         updateExtraInfo("§e职业战争", getLoc("hub"));
         initSigns();
         initSpawnLocs();
+        initScoreboard();
         registerCommand();
         registerKits();
         cooldownReductionMultiplier = getConfig().getDouble("cooldown-reduction-multiplier");
@@ -326,6 +375,7 @@ public class KitBattle extends Game implements Listener {
     @Override
     public void onDisable() {
         super.onDisable();
+        Bukkit.getScheduler().cancelTasks(this);
         for (UUID uuid : new ArrayList<>(playerIds)) {
             Player p = Bukkit.getPlayer(uuid);
             assert p != null;
