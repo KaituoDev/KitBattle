@@ -21,7 +21,6 @@ public class Hysteria implements Kit{
         strengthAmplifier = getConfigInt("strength-amplifier");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speedDuration, speedAmplifier));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strengthDuration, strengthAmplifier));

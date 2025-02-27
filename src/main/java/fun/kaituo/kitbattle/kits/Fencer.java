@@ -21,7 +21,6 @@ public class Fencer implements Kit {
     }
 
 
-    @Override
     public boolean castSkill(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speedDuration, speedAmplifier));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strengthDuration, strengthAmplifier));

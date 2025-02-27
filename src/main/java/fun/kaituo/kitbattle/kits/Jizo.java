@@ -24,7 +24,6 @@ public class Jizo implements Kit{
         radius = getConfigInt("radius");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         Player victim = KitBattle.inst().getNearestEnemy(p, radius);
         if (victim == null) {
