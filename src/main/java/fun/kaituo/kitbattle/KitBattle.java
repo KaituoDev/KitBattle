@@ -7,20 +7,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kits.Batter;
-import fun.kaituo.kitbattle.kits.BlackWolf;
-import fun.kaituo.kitbattle.kits.BladeMaster;
-import fun.kaituo.kitbattle.kits.Bower;
-import fun.kaituo.kitbattle.kits.CaveMan;
-import fun.kaituo.kitbattle.kits.Elf;
-import fun.kaituo.kitbattle.kits.Enderman;
-import fun.kaituo.kitbattle.kits.Fencer;
-import fun.kaituo.kitbattle.kits.FireTongue;
-import fun.kaituo.kitbattle.kits.GravityMage;
-import fun.kaituo.kitbattle.kits.Guardian;
-import fun.kaituo.kitbattle.kits.Hysteria;
-import fun.kaituo.kitbattle.kits.Illusionist;
-import fun.kaituo.kitbattle.kits.Jizo;
 import fun.kaituo.kitbattle.kits.Kit;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
@@ -44,20 +30,10 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Criteria;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
+import org.reflections.Reflections;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static fun.kaituo.gameutils.util.Misc.getMenu;
 
@@ -75,7 +51,7 @@ public class KitBattle extends Game implements Listener {
     public final Set<UUID> playerIds = new HashSet<>();
     public final Map<UUID, PlayerData> playerIdDataMap = new HashMap<>();
 
-    private final Map<String, Kit> kits = new HashMap<>();
+    private final Map<String, Class<? extends Kit>> kitClasses = new HashMap<>();
 
     private final Random random = new Random();
     // Change this to match the actual spawn location names.
@@ -150,7 +126,8 @@ public class KitBattle extends Game implements Listener {
         protocolManager.broadcastServerPacket(packet);
     }
 
-    public void toArena(Player p, Kit kit) {
+    public void toArena(Player p, Class<? extends Kit> kitClass) {
+        Kit kit = getKit(kitClass);
         reset(p);
         kit.applyInventory(p);
         kit.applyPotionEffects(p);
@@ -174,16 +151,21 @@ public class KitBattle extends Game implements Listener {
         playerIdDataMap.remove(p.getUniqueId());
     }
 
-    public Kit getKit(String name) {
-        return kits.get(name);
+    public Class<? extends Kit> getKitClass(String name) {
+        return kitClasses.get(name);
     }
 
     public Set<String> getKitNames() {
-        return kits.keySet();
+        return kitClasses.keySet();
     }
 
-    public void registerKit(Kit kit) {
-        kits.put(kit.getClass().getSimpleName(), kit);
+    public Kit getKit(Class<? extends Kit> kitClass) {
+        try {
+            return kitClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            getLogger().warning("Failed to instantiate kit class " + kitClass.getSimpleName());
+            return null;
+        }
     }
 
     public boolean isInfiniteFirepower() {
@@ -260,20 +242,11 @@ public class KitBattle extends Game implements Listener {
     }
 
     private void registerKits() {
-        registerKit(new Batter());
-        registerKit(new BlackWolf());
-        registerKit(new BladeMaster());
-        registerKit(new Bower());
-        registerKit(new CaveMan());
-        registerKit(new Elf());
-        registerKit(new Enderman());
-        registerKit(new Fencer());
-        registerKit(new FireTongue());
-        registerKit(new GravityMage());
-        registerKit(new Guardian());
-        registerKit(new Hysteria());
-        registerKit(new Illusionist());
-        registerKit(new Jizo());
+        Reflections reflections = new Reflections("fun.kaituo.kitbattle.kits");
+        Set<Class<? extends Kit>> kitClassesFound = reflections.getSubTypesOf(Kit.class);
+        for (Class<? extends Kit> kitClass : kitClassesFound) {
+            this.kitClasses.put(kitClass.getSimpleName(), kitClass);
+        }
     }
 
     @EventHandler
@@ -354,7 +327,7 @@ public class KitBattle extends Game implements Listener {
             toHub(p);
         } else {
             Kit kit = data.getKit();
-            Bukkit.getScheduler().runTaskLater(this, () -> toArena(p, kit), 1);
+            Bukkit.getScheduler().runTaskLater(this, () -> toArena(p, kit.getClass()), 1);
         }
     }
 
