@@ -30,12 +30,7 @@ public interface Kit {
     }
 
     default long getCooldownTicks() {
-        long coolDownTicks = KitBattle.inst().getConfig().getLong(getConfigPrefix() + "cd");
-        // If the entry does not exist, getLong() actually returns 0
-        if (coolDownTicks == 0) {
-            return -1;
-        }
-        return coolDownTicks;
+        return getConfigLong("cd");
     }
 
     default void applyInventory(Player p) {
