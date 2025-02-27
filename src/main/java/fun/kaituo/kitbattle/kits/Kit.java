@@ -8,6 +8,27 @@ public interface Kit {
     default String getConfigPrefix() {
         return "kits-config." + this.getClass().getSimpleName() + ".";
     }
+
+    @SuppressWarnings("unused")
+    default String getConfigString(String key) {
+        return KitBattle.inst().getConfig().getString(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    default int getConfigInt(String key) {
+        return KitBattle.inst().getConfig().getInt(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    default long getConfigLong(String key) {
+        return KitBattle.inst().getConfig().getLong(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    default double getConfigDouble(String key) {
+        return KitBattle.inst().getConfig().getDouble(getConfigPrefix() + key);
+    }
+
     default long getCooldownTicks() {
         long coolDownTicks = KitBattle.inst().getConfig().getLong(getConfigPrefix() + "cd");
         // If the entry does not exist, getLong() actually returns 0

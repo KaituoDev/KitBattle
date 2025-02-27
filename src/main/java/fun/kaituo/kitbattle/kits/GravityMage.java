@@ -8,16 +8,17 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class GravityMage implements Kit{
-    private final int slowDuration;
-    private final int slowAmplifier;
+    private final int slownessDuration;
+    private final int slownessAmplifier;
     private final int radius;
 
     public GravityMage() {
         FileConfiguration config = KitBattle.inst().getConfig();
-        slowDuration = config.getInt(getConfigPrefix() + "slowness-duration");
-        slowAmplifier = config.getInt(getConfigPrefix() + "slowness-amplifier");
-        radius = config.getInt(getConfigPrefix() + "radius");
+        slownessDuration = getConfigInt("slowness-duration");
+        slownessAmplifier = getConfigInt("slowness-amplifier");
+        radius = getConfigInt("radius");
     }
 
     @Override
@@ -27,7 +28,7 @@ public class GravityMage implements Kit{
             return false;
         }
         for (Player victim: enemies) {
-            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slowDuration, slowAmplifier));
+            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slownessDuration, slownessAmplifier));
         }
         return true;
     }

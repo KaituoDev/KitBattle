@@ -16,13 +16,14 @@ import org.bukkit.potion.PotionType;
 import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
 import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
+@SuppressWarnings("unused")
 public class Elf implements Kit{
     private final int poisonDuration;
     private final int poisonAmplifier;
     public Elf() {
         FileConfiguration config = KitBattle.inst().getConfig();
-        poisonDuration = config.getInt(getConfigPrefix() + "poison-duration");
-        poisonAmplifier = config.getInt(getConfigPrefix() + "poison-amplifier");
+        poisonDuration = getConfigInt("poison-duration");
+        poisonAmplifier = getConfigInt("poison-amplifier");
     }
 
     @Override

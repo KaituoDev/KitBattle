@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+@SuppressWarnings("unused")
 public class Jizo implements Kit{
     private final int slownessDuration;
     private final int slownessAmplifier;
@@ -17,10 +18,10 @@ public class Jizo implements Kit{
 
     public Jizo() {
         FileConfiguration config = KitBattle.inst().getConfig();
-        slownessDuration = config.getInt(getConfigPrefix() + "slowness-duration");
-        slownessAmplifier = config.getInt(getConfigPrefix() + "slowness-amplifier");
-        blindnessDuration = config.getInt(getConfigPrefix() + "blindness-duration");
-        radius = config.getInt(getConfigPrefix() + "radius");
+        slownessDuration = getConfigInt("slowness-duration");
+        slownessAmplifier = getConfigInt("slowness-amplifier");
+        blindnessDuration = getConfigInt("blindness-duration");
+        radius = getConfigInt("radius");
     }
 
     @Override
