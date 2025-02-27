@@ -2,16 +2,15 @@ package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 
+@SuppressWarnings("unused")
 public class Illusionist implements Kit{
     private final int distance;
 
     public Illusionist() {
-        FileConfiguration config = KitBattle.inst().getConfig();
-        distance = config.getInt(getConfigPrefix() + "distance");
+        distance = getConfigInt("distance");
     }
 
     @Override

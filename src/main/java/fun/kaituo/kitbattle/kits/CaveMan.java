@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+@SuppressWarnings("unused")
 public class CaveMan implements Kit{
     @Override
     public void applyPotionEffects(Player p) {

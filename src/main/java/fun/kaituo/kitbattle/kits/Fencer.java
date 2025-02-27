@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+@SuppressWarnings("unused")
 public class Fencer implements Kit {
     private final int speedDuration;
     private final int speedAmplifier;
@@ -13,10 +14,10 @@ public class Fencer implements Kit {
     private final int strengthAmplifier;
     public Fencer() {
         FileConfiguration config = KitBattle.inst().getConfig();
-        speedDuration = config.getInt(getConfigPrefix() + "speed-duration");
-        speedAmplifier = config.getInt(getConfigPrefix() + "speed-amplifier");
-        strengthDuration = config.getInt(getConfigPrefix() + "strength-duration");
-        strengthAmplifier = config.getInt(getConfigPrefix() + "strength-amplifier");
+        speedDuration = getConfigInt("speed-duration");
+        speedAmplifier = getConfigInt("speed-amplifier");
+        strengthDuration = getConfigInt("strength-duration");
+        strengthAmplifier = getConfigInt("strength-amplifier");
     }
 
 

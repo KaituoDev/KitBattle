@@ -5,7 +5,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import java.util.Set;
@@ -18,9 +17,8 @@ public class BladeMaster implements Kit {
     private final double skillRadius;
     private final double skillDamage;
     public BladeMaster() {
-        FileConfiguration config = KitBattle.inst().getConfig();
-        skillRadius = config.getDouble(getConfigPrefix() + "radius");
-        skillDamage = config.getDouble(getConfigPrefix() + "damage");
+        skillRadius = getConfigDouble("radius");
+        skillDamage = getConfigDouble("damage");
     }
 
     @Override
