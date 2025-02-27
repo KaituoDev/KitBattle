@@ -13,7 +13,6 @@ public class Illusionist implements Kit{
         distance = getConfigInt("distance");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),

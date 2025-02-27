@@ -34,6 +34,11 @@ public class PlayerData {
     }
 
     public void tick(Player p) {
+        if (maxCooldownTicks == 0) {
+            p.setLevel(0);
+            p.setExp(0);
+            return;
+        }
         if (cooldownTicks > 0) {
             cooldownTicks -= 1;
         }

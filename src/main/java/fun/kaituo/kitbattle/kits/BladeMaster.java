@@ -21,7 +21,6 @@ public class BladeMaster implements Kit {
         skillDamage = getConfigDouble("damage");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         Set<Player> victims = KitBattle.inst().getNearbyEnemies(p,skillRadius);
         if (victims.isEmpty()) {

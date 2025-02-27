@@ -26,7 +26,6 @@ public class Elf implements Kit{
         poisonAmplifier = getConfigInt("poison-amplifier");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         if (p.getInventory().contains(Material.TIPPED_ARROW)) {
             return false;

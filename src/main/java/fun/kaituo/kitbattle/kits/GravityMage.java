@@ -21,7 +21,6 @@ public class GravityMage implements Kit{
         radius = getConfigInt("radius");
     }
 
-    @Override
     public boolean castSkill(Player p) {
         Set<Player> enemies =  KitBattle.inst().getNearbyEnemies(p, radius);
         if (enemies.isEmpty()) {
