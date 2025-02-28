@@ -60,7 +60,7 @@ public abstract class PlayerData {
         p.setExp((1f - (float) coolDownTicks / maxCoolDownTicks));
     }
 
-    public void save(Player p) {
+    public void quit(Player p) {
         location = p.getLocation();
         potionEffects.clear();
         potionEffects.addAll(p.getActivePotionEffects());
@@ -70,7 +70,7 @@ public abstract class PlayerData {
         inventory = new GameInventory(p);
     }
 
-    public void load(Player p) {
+    public void rejoin(Player p) {
         p.teleport(location);
         p.addPotionEffects(potionEffects);
         p.setHealth(health);

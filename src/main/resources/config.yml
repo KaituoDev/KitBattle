@@ -37,6 +37,9 @@ kits-config:
   Mage:
     cd: 280
     explosion-power: 2
+  Pilot:
+    cd: 400
+    fly-duration: 200
   StormKnight:
     cd: 300
     first-arrow-downward-speed: -2
