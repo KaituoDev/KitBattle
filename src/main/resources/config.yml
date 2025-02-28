@@ -28,7 +28,7 @@ kits-config:
   Illusionist:
     cd: 300
     distance: 20
-  Jizo:
+  Evoker:
     cd: 300
     slowness-duration: 40
     slowness-amplifier: 0

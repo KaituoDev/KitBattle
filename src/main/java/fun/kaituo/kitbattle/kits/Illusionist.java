@@ -1,18 +1,21 @@
 package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 
 @SuppressWarnings("unused")
-public class Illusionist implements Kit{
+public class Illusionist extends PlayerData {
     private final int distance;
 
-    public Illusionist() {
+    public Illusionist(Player p) {
+        super(p);
         distance = getConfigInt("distance");
     }
 
+    @Override
     public boolean castSkill(Player p) {
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),

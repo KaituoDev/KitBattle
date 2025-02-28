@@ -1,11 +1,10 @@
 package fun.kaituo.kitbattle.kits;
 
-import fun.kaituo.kitbattle.KitBattle;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -17,11 +16,12 @@ import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
 import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
 @SuppressWarnings("unused")
-public class Elf implements Kit{
+public class Elf extends PlayerData {
     private final int poisonDuration;
     private final int poisonAmplifier;
-    public Elf() {
-        FileConfiguration config = KitBattle.inst().getConfig();
+
+    public Elf(Player p) {
+        super(p);
         poisonDuration = getConfigInt("poison-duration");
         poisonAmplifier = getConfigInt("poison-amplifier");
     }

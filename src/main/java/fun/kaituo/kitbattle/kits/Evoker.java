@@ -1,6 +1,7 @@
 package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
@@ -10,13 +11,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 @SuppressWarnings("unused")
-public class Jizo implements Kit{
+public class Evoker extends PlayerData {
     private final int slownessDuration;
     private final int slownessAmplifier;
     private final int blindnessDuration;
     private final int radius;
 
-    public Jizo() {
+    public Evoker(Player p) {
+        super(p);
         FileConfiguration config = KitBattle.inst().getConfig();
         slownessDuration = getConfigInt("slowness-duration");
         slownessAmplifier = getConfigInt("slowness-amplifier");
@@ -24,6 +26,7 @@ public class Jizo implements Kit{
         radius = getConfigInt("radius");
     }
 
+    @Override
     public boolean castSkill(Player p) {
         Player victim = KitBattle.inst().getNearestEnemy(p, radius);
         if (victim == null) {

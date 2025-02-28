@@ -1,19 +1,18 @@
 package fun.kaituo.kitbattle.kits;
 
-import fun.kaituo.kitbattle.KitBattle;
-import org.bukkit.configuration.file.FileConfiguration;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 @SuppressWarnings("unused")
-public class Fencer implements Kit {
+public class Fencer extends PlayerData {
     private final int speedDuration;
     private final int speedAmplifier;
     private final int strengthDuration;
     private final int strengthAmplifier;
-    public Fencer() {
-        FileConfiguration config = KitBattle.inst().getConfig();
+    public Fencer(Player p) {
+        super(p);
         speedDuration = getConfigInt("speed-duration");
         speedAmplifier = getConfigInt("speed-amplifier");
         strengthDuration = getConfigInt("strength-duration");
