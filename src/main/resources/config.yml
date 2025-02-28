@@ -40,6 +40,8 @@ kits-config:
   Pilot:
     cd: 400
     fly-duration: 200
+  Spirit:
+    cd: 200000
   StormKnight:
     cd: 300
     first-arrow-downward-speed: -2

@@ -2,7 +2,12 @@ package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
@@ -10,7 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -65,11 +70,11 @@ public class Mage extends PlayerData implements Listener {
         flyingFireballs.add(fireball);
         world.playSound(p.getLocation(), Sound.ENTITY_GHAST_SHOOT, SoundCategory.PLAYERS, SOUND_VOLUME, 1);
         world.spawnParticle(Particle.WITCH, p.getLocation(), PARTICLE_COUNT, 3, 3, 3);
-        return false;
+        return true;
     }
 
     @EventHandler
-    public void onFireballHit(ProjectileHitEvent e) {
+    public void onFireballExplode(ExplosionPrimeEvent e) {
         for (Fireball fireball : flyingFireballs) {
             if (fireball.equals(e.getEntity())) {
                 e.setCancelled(true);
