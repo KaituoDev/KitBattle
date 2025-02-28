@@ -7,7 +7,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kits.Kit;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
@@ -33,6 +32,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.*;
 import org.reflections.Reflections;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 import static fun.kaituo.gameutils.util.Misc.getMenu;
@@ -51,14 +51,13 @@ public class KitBattle extends Game implements Listener {
     public final Set<UUID> playerIds = new HashSet<>();
     public final Map<UUID, PlayerData> playerIdDataMap = new HashMap<>();
 
-    private final Map<String, Class<? extends Kit>> kitClasses = new HashMap<>();
+    private final Map<String, Class<? extends PlayerData>> kitClasses = new HashMap<>();
 
     private final Random random = new Random();
     // Change this to match the actual spawn location names.
     private final List<String> spawnLocNames = List.of("spawn1", "spawn2", "spawn3", "spawn4");
     private final List<Location> spawnLocs = new ArrayList<>();
 
-    private double cooldownReductionMultiplier;
     private InfiniteFirepowerSign infiniteFirepowerSign;
     private RecoverOnKillSign recoverOnKillSign;
     private ItemStack backItem;
@@ -78,7 +77,6 @@ public class KitBattle extends Game implements Listener {
         p.setSaturation(5);
         p.setLevel(0);
         p.setExp(0);
-
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -126,19 +124,22 @@ public class KitBattle extends Game implements Listener {
         protocolManager.broadcastServerPacket(packet);
     }
 
-    public void toArena(Player p, Class<? extends Kit> kitClass) {
-        Kit kit = getKit(kitClass);
+    public void toArena(Player p, Class<? extends PlayerData> kitClass) {
         reset(p);
-        kit.applyInventory(p);
-        kit.applyPotionEffects(p);
-        p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
-        // Give player glowing and regeneration for 3 seconds
-        p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 9, false, false));
         p.teleport(getRandomSpawnLoc());
         p.playSound(p, Sound.ITEM_ARMOR_EQUIP_GOLD, SOUND_VOLUME, 1);
-
-        PlayerData data = new PlayerData(kit);
+        PlayerData data;
+        try {
+            Constructor<? extends PlayerData> constructor = kitClass.getConstructor(Player.class);
+            data = constructor.newInstance(p);
+        } catch (Exception e) {
+            p.sendMessage("§c初始化职业 " + kitClass.getSimpleName() + " 失败！");
+            throw new RuntimeException(e);
+        }
+        PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
+        if (originalData != null) {
+            originalData.destroy(p);
+        }
         playerIdDataMap.put(p.getUniqueId(), data);
     }
 
@@ -148,24 +149,19 @@ public class KitBattle extends Game implements Listener {
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
         p.teleport(location);
+        PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
+        if (originalData != null) {
+            originalData.destroy(p);
+        }
         playerIdDataMap.remove(p.getUniqueId());
     }
 
-    public Class<? extends Kit> getKitClass(String name) {
+    public Class<? extends PlayerData> getKitClass(String name) {
         return kitClasses.get(name);
     }
 
     public Set<String> getKitNames() {
         return kitClasses.keySet();
-    }
-
-    public Kit getKit(Class<? extends Kit> kitClass) {
-        try {
-            return kitClass.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            getLogger().warning("Failed to instantiate kit class " + kitClass.getSimpleName());
-            return null;
-        }
     }
 
     public boolean isInfiniteFirepower() {
@@ -177,7 +173,7 @@ public class KitBattle extends Game implements Listener {
     }
 
     public double getCooldownReductionMultiplier() {
-        return cooldownReductionMultiplier;
+        return getConfig().getDouble("cooldown-reduction-multiplier");
     }
 
     private void initSpawnLocs() {
@@ -243,8 +239,8 @@ public class KitBattle extends Game implements Listener {
 
     private void registerKits() {
         Reflections reflections = new Reflections("fun.kaituo.kitbattle.kits");
-        Set<Class<? extends Kit>> kitClassesFound = reflections.getSubTypesOf(Kit.class);
-        for (Class<? extends Kit> kitClass : kitClassesFound) {
+        Set<Class<? extends PlayerData>> kitClassesFound = reflections.getSubTypesOf(PlayerData.class);
+        for (Class<? extends PlayerData> kitClass : kitClassesFound) {
             this.kitClasses.put(kitClass.getSimpleName(), kitClass);
         }
     }
@@ -326,8 +322,8 @@ public class KitBattle extends Game implements Listener {
             p.sendMessage("§c你怎么在休息室死掉了？");
             toHub(p);
         } else {
-            Kit kit = data.getKit();
-            Bukkit.getScheduler().runTaskLater(this, () -> toArena(p, kit.getClass()), 1);
+            Class<? extends PlayerData> kitClass = data.getClass();
+            Bukkit.getScheduler().runTaskLater(this, () -> toArena(p, kitClass), 1);
         }
     }
 
@@ -385,8 +381,9 @@ public class KitBattle extends Game implements Listener {
 
     @Override
     public void onEnable() {
-        instance = this;
         super.onEnable();
+
+        instance = this;
         saveDefaultConfig();
         updateExtraInfo("§e职业战争", getLoc("hub"));
         initSigns();
@@ -395,7 +392,6 @@ public class KitBattle extends Game implements Listener {
         loadKills();
         registerCommand();
         registerKits();
-        cooldownReductionMultiplier = getConfig().getDouble("cooldown-reduction-multiplier");
         backItem = getItem("back");
         protocolManager = ProtocolLibrary.getProtocolManager();
         Bukkit.getPluginManager().registerEvents(this, this);

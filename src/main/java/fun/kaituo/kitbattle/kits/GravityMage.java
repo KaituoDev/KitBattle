@@ -1,7 +1,7 @@
 package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
-import org.bukkit.configuration.file.FileConfiguration;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -9,13 +9,13 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.Set;
 
 @SuppressWarnings("unused")
-public class GravityMage implements Kit{
+public class GravityMage extends PlayerData {
     private final int slownessDuration;
     private final int slownessAmplifier;
     private final int radius;
 
-    public GravityMage() {
-        FileConfiguration config = KitBattle.inst().getConfig();
+    public GravityMage(Player p) {
+        super(p);
         slownessDuration = getConfigInt("slowness-duration");
         slownessAmplifier = getConfigInt("slowness-amplifier");
         radius = getConfigInt("radius");

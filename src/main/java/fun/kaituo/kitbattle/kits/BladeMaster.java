@@ -1,6 +1,7 @@
 package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.KitBattle;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -13,10 +14,11 @@ import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
 import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
 @SuppressWarnings("unused")
-public class BladeMaster implements Kit {
+public class BladeMaster extends PlayerData {
     private final double skillRadius;
     private final double skillDamage;
-    public BladeMaster() {
+    public BladeMaster(Player p) {
+        super(p);
         skillRadius = getConfigDouble("radius");
         skillDamage = getConfigDouble("damage");
     }

@@ -2,7 +2,7 @@ package fun.kaituo.kitbattle.command;
 
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.kitbattle.KitBattle;
-import fun.kaituo.kitbattle.kits.Kit;
+import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -32,7 +32,7 @@ public class KitBattleGo implements CommandExecutor, TabCompleter {
             sender.sendMessage("§c指令参数错误！使用方法为/kitbattlego <职业名称>");
             return true;
         }
-        Class<? extends Kit> kitClass = KitBattle.inst().getKitClass(args[0]);
+        Class<? extends PlayerData> kitClass = KitBattle.inst().getKitClass(args[0]);
         if (kitClass == null) {
             sender.sendMessage("§c未找到名称为" + args[0] + "的职业！");
             return true;

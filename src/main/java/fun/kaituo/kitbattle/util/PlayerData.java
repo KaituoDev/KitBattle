@@ -2,72 +2,68 @@ package fun.kaituo.kitbattle.util;
 
 import fun.kaituo.gameutils.util.GameInventory;
 import fun.kaituo.kitbattle.KitBattle;
-import fun.kaituo.kitbattle.kits.Kit;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
-public class PlayerData {
-    private final Kit kit;
+public abstract class PlayerData {
+    protected Location location;
+    protected final Collection<PotionEffect> potionEffects = new ArrayList<>();
+    protected double health;
+    protected int foodLevel;
+    protected float saturation;
+    protected GameInventory inventory;
+    protected final long maxCoolDownTicks;
+    protected long coolDownTicks;
 
-    private Location location;
-    private Collection<PotionEffect> effects;
-    private double health;
-    private int foodLevel;
-    private float saturation;
-    private GameInventory inventory;
-    private long maxCooldownTicks;
-    private long cooldownTicks;
-
-    public PlayerData(Kit kit) {
-        this.kit = kit;
-        maxCooldownTicks = kit.getCooldownTicks();
-        cooldownTicks = 0;
+    public PlayerData(Player p) {
+        maxCoolDownTicks = getConfigLong("cd");
+        coolDownTicks = 0;
+        applyInventory(p);
+        applyPotionEffects(p);
     }
 
-    public Kit getKit() {
-        return kit;
+    public void destroy(Player p) {}
+
+    public void applyPotionEffects(Player p) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
+        // Give player glowing and regeneration for 3 seconds
+        p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 9, false, false));
+    }
+
+    public void applyInventory(Player p) {
+        GameInventory inv = KitBattle.inst().getInv(this.getClass().getSimpleName());
+        if (inv != null) {
+            inv.apply(p);
+        } else {
+            p.sendMessage("§cKit " + this.getClass().getSimpleName() + " not found!");
+        }
     }
 
     public void tick(Player p) {
-        if (maxCooldownTicks == 0) {
+        if (maxCoolDownTicks == 0) {
             p.setLevel(0);
             p.setExp(0);
             return;
         }
-        if (cooldownTicks > 0) {
-            cooldownTicks -= 1;
+        if (coolDownTicks > 0) {
+            coolDownTicks -= 1;
         }
-        p.setLevel((int) Math.ceil ((double) cooldownTicks / 20));
-        p.setExp((1f - (float) cooldownTicks / maxCooldownTicks));
-    }
-
-    public void tryCastSkill(Player p) {
-        if (maxCooldownTicks == 0) {
-            p.sendMessage("§c你没有技能！");
-            return;
-        }
-        if (cooldownTicks > 0) {
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§4§l技能冷却中！"));
-            return;
-        }
-        if (kit.castSkill(p)) {
-            if (KitBattle.inst().isInfiniteFirepower()) {
-                maxCooldownTicks = (long) (kit.getCooldownTicks() * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
-            } else {
-                maxCooldownTicks = kit.getCooldownTicks();
-            }
-            cooldownTicks = maxCooldownTicks;
-        }
+        p.setLevel((int) Math.ceil ((double) coolDownTicks / 20));
+        p.setExp((1f - (float) coolDownTicks / maxCoolDownTicks));
     }
 
     public void save(Player p) {
         location = p.getLocation();
-        effects = p.getActivePotionEffects();
+        potionEffects.clear();
+        potionEffects.addAll(p.getActivePotionEffects());
         health = p.getHealth();
         foodLevel = p.getFoodLevel();
         saturation = p.getSaturation();
@@ -76,10 +72,56 @@ public class PlayerData {
 
     public void load(Player p) {
         p.teleport(location);
-        p.addPotionEffects(effects);
+        p.addPotionEffects(potionEffects);
         p.setHealth(health);
         p.setFoodLevel(foodLevel);
         p.setSaturation(saturation);
         inventory.apply(p);
+    }
+
+    public void tryCastSkill(Player p) {
+        if (maxCoolDownTicks == 0) {
+            p.sendMessage("§c你没有技能！");
+            return;
+        }
+        if (coolDownTicks > 0) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§c§l技能冷却中！"));
+            return;
+        }
+        if (castSkill(p)) {
+            if (KitBattle.inst().isInfiniteFirepower()) {
+                coolDownTicks = (long) (maxCoolDownTicks * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
+            } else {
+                coolDownTicks = maxCoolDownTicks;
+            }
+        }
+    }
+
+    public boolean castSkill(Player p) {
+        return false;
+    }
+
+    public String getConfigPrefix() {
+        return "kits-config." + this.getClass().getSimpleName() + ".";
+    }
+
+    @SuppressWarnings("unused")
+    public String getConfigString(String key) {
+        return KitBattle.inst().getConfig().getString(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    public int getConfigInt(String key) {
+        return KitBattle.inst().getConfig().getInt(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    public long getConfigLong(String key) {
+        return KitBattle.inst().getConfig().getLong(getConfigPrefix() + key);
+    }
+
+    @SuppressWarnings("unused")
+    public double getConfigDouble(String key) {
+        return KitBattle.inst().getConfig().getDouble(getConfigPrefix() + key);
     }
 }
