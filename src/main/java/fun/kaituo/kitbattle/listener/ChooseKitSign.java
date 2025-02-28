@@ -13,7 +13,7 @@ public class ChooseKitSign extends AbstractSignListener {
     public ChooseKitSign(JavaPlugin plugin, Location location) {
         super(plugin, location);
         lines.set(0, "§a§l职业战争");
-        lines.set(2, "§6§l[选择职业]");
+        lines.set(2, "§6§l[右键选择职业]");
     }
 
     @Override
