@@ -50,4 +50,9 @@ kits-config:
   Smasher:
     cd: 800
     explosion-power: 1
+  Uncrowned:
+    cd: 100
+    glowing-duration: 20
+    resistance-duration: 20
+    resistance-amplifier: 2
 
