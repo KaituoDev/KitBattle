@@ -23,11 +23,13 @@ public class Pilot extends PlayerData {
 
     @Override
     public void quit(Player p) {
+        super.quit(p);
         p.setAllowFlight(false);
     }
 
     @Override
     public void rejoin(Player p) {
+        super.rejoin(p);
         if (remainingFlyDuration > 0) {
             p.setAllowFlight(true);
         }

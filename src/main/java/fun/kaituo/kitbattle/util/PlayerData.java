@@ -19,7 +19,7 @@ public abstract class PlayerData {
     protected int foodLevel;
     protected float saturation;
     protected GameInventory inventory;
-    protected final long maxCoolDownTicks;
+    protected long maxCoolDownTicks;
     protected long coolDownTicks;
 
     public PlayerData(Player p) {
@@ -27,15 +27,14 @@ public abstract class PlayerData {
         coolDownTicks = 0;
         applyInventory(p);
         applyPotionEffects(p);
+        p.setHealth(40);
     }
 
     public void destroy(Player p) {}
 
     public void applyPotionEffects(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
-        // Give player glowing and regeneration for 3 seconds
         p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 9, false, false));
     }
 
     public void applyInventory(Player p) {
@@ -90,10 +89,11 @@ public abstract class PlayerData {
         }
         if (castSkill(p)) {
             if (KitBattle.inst().isInfiniteFirepower()) {
-                coolDownTicks = (long) (maxCoolDownTicks * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
+                maxCoolDownTicks = (long) (getConfigLong("cd") * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
             } else {
-                coolDownTicks = maxCoolDownTicks;
+                maxCoolDownTicks = getConfigLong("cd");
             }
+            coolDownTicks = maxCoolDownTicks;
         }
     }
 

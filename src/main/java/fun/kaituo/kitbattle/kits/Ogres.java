@@ -9,6 +9,7 @@ import org.bukkit.potion.PotionEffectType;
 public class Ogres extends PlayerData {
     public Ogres(Player p) {
         super(p);
+        p.setHealth(80);
     }
 
     @Override
