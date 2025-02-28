@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 
 import java.util.HashSet;
@@ -82,6 +84,21 @@ public class Mage extends PlayerData implements Listener {
                 fireball.remove();
                 flyingFireballs.remove(fireball);
                 return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void protectBlockFromExplosion(EntityExplodeEvent eee) {
+        eee.blockList().clear();
+        Location center = eee.getLocation();
+        for (int i = center.getBlockX() - 3; i <= center.getBlockX() + 3; ++i) {
+            for (int j = center.getBlockZ() - 3; j <= center.getBlockZ() + 3; ++j){
+                for (int k = center.getBlockY() - 3; k <= center.getBlockY() + 3; ++k) {
+                    if (center.getWorld().getBlockAt(i, k, j).getType().equals(Material.FIRE)) {
+                        center.getWorld().getBlockAt(i, k, j).setType(Material.AIR);
+                    }
+                }
             }
         }
     }
