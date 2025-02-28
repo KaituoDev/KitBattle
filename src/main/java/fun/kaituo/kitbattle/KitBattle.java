@@ -343,7 +343,7 @@ public class KitBattle extends Game implements Listener {
 
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.load(p);
+            data.rejoin(p);
         } else {
             toHub(p);
         }
@@ -353,7 +353,7 @@ public class KitBattle extends Game implements Listener {
     public void removePlayer(Player p) {
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.save(p);
+            data.quit(p);
         }
         p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());

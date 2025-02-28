@@ -18,6 +18,7 @@ import java.util.Set;
 import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
 import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
+@SuppressWarnings("unused")
 public class Mage extends PlayerData implements Listener {
     private final Set<Fireball> flyingFireballs = new HashSet<>();
     private final float explosionPower;
@@ -43,15 +44,15 @@ public class Mage extends PlayerData implements Listener {
     }
 
     @Override
-    public void save(Player p) {
-        super.save(p);
+    public void quit(Player p) {
+        super.quit(p);
         clearFireballs();
         HandlerList.unregisterAll(this);
     }
 
     @Override
-    public void load(Player p) {
-        super.load(p);
+    public void rejoin(Player p) {
+        super.rejoin(p);
         Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
     }
 
