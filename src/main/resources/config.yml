@@ -8,6 +8,12 @@ kits-config:
     cd: 300
     poison-duration: 40
     poison-amplifier: 0
+  Evoker:
+    cd: 300
+    slowness-duration: 40
+    slowness-amplifier: 0
+    blindness-duration: 40
+    radius: 15
   Fencer:
     cd: 200
     speed-duration: 40
@@ -28,12 +34,9 @@ kits-config:
   Illusionist:
     cd: 300
     distance: 20
-  Evoker:
-    cd: 300
-    slowness-duration: 40
-    slowness-amplifier: 0
-    blindness-duration: 40
-    radius: 15
+  Mage:
+    cd: 280
+    explosion-power: 2
   StormKnight:
     cd: 300
     first-arrow-downward-speed: -2
@@ -42,6 +45,4 @@ kits-config:
   Smasher:
     cd: 800
     explosion-power: 1
-  Mage:
-    cd: 280
 
