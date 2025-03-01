@@ -1,4 +1,5 @@
 cooldown-reduction-multiplier: 0.8
+<<<<<<< Updated upstream
 storm-knight:
   cd: 300
   first-arrow-downward-speed: -2
@@ -18,3 +19,75 @@ blade-master:
 mage:
   cd: 280
 
+=======
+kits-config:
+  BladeMaster:
+    cd: 200
+    radius: 3
+    damage: 10
+  Elf:
+    cd: 300
+    poison-duration: 40
+    poison-amplifier: 0
+  Evoker:
+    cd: 300
+    slowness-duration: 40
+    slowness-amplifier: 0
+    blindness-duration: 40
+    radius: 15
+  Fencer:
+    cd: 300
+    speed-duration: 40
+    speed-amplifier: 4
+    strength-duration: 40
+    strength-amplifier: 0
+  GravityMage:
+    cd: 200
+    slowness-duration: 40
+    slowness-amplifier: 2
+    radius: 3
+  Hysteria:
+    cd: 200
+    speed-duration: 60
+    speed-amplifier: 1
+    strength-duration: 40
+    strength-amplifier: 01
+  Illusionist:
+    cd: 300
+    distance: 20
+  Mage:
+    cd: 280
+    explosion-power: 2
+  Pilot:
+    cd: 400
+    fly-duration: 200
+  Spirit:
+    cd: 200000
+  StormKnight:
+    cd: 300
+    first-arrow-downward-speed: -2
+    second-arrow-downward-speed: -3
+    third-arrow-downward-speed: -4
+  Smasher:
+    cd: 400
+    explosion-power: 4
+  Tracer:
+    cd: 200
+    distance: 5
+  Uncrowned:
+    cd: 100
+    glowing-duration: 20
+    resistance-duration: 20
+    resistance-amplifier: 2
+  WhiteWolf:
+    cd: 400
+    health-cost: 0.25
+    explosion-min-power: 2
+    explosion-max-power: 3
+  StormKnight:
+    cd: 300
+    storm-duration: 60
+    slowness-amplifier: 2
+    resistance-amplifier: 2
+    jump-boost-amplifier: 250
+>>>>>>> Stashed changes
