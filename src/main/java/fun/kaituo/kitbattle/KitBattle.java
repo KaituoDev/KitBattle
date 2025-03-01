@@ -264,7 +264,8 @@ public class KitBattle extends Game implements Listener {
         Score killerScore = killsObjective.getScore(killer.getName());
         killerScore.setScore(killerScore.getScore() + 1);
         if (shouldRecoverOnKill()) {
-            killer.addPotionEffect(new PotionEffect(PotionEffectType.INSTANT_HEALTH, 1, 99, false, true));
+            Bukkit.getScheduler().runTaskLater(this, () ->
+                    killer.addPotionEffect(new PotionEffect(PotionEffectType.INSTANT_HEALTH, 2, 199, false, true)), 1);
         }
     }
 

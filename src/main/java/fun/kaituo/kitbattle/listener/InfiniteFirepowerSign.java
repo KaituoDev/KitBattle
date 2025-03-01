@@ -15,7 +15,7 @@ public class InfiniteFirepowerSign extends AbstractSignListener {
         lines.set(2, isInfiniteFirepower ? ON_TEXT : OFF_TEXT);
     }
 
-    private boolean isInfiniteFirepower = false;
+    private boolean isInfiniteFirepower = true;
 
     public boolean isInfiniteFirepower() {
         return isInfiniteFirepower;

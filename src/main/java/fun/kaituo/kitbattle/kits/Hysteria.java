@@ -1,9 +1,16 @@
 package fun.kaituo.kitbattle.kits;
 
 import fun.kaituo.kitbattle.util.PlayerData;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
+import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
 @SuppressWarnings("unused")
 public class Hysteria extends PlayerData {
@@ -24,6 +31,9 @@ public class Hysteria extends PlayerData {
     public boolean castSkill(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speedDuration, speedAmplifier));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strengthDuration, strengthAmplifier));
+        World world = p.getWorld();
+        world.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL , SoundCategory.PLAYERS, SOUND_VOLUME, 2);
+        world.spawnParticle(Particle.ANGRY_VILLAGER, p.getLocation(), PARTICLE_COUNT, 3, 3, 3);
         return true;
     }
 }
