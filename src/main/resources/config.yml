@@ -48,11 +48,19 @@ kits-config:
     second-arrow-downward-speed: -3
     third-arrow-downward-speed: -4
   Smasher:
-    cd: 800
-    explosion-power: 1
+    cd: 400
+    explosion-power: 4
+  Tracer:
+    cd: 200
+    distance: 5
   Uncrowned:
     cd: 100
     glowing-duration: 20
     resistance-duration: 20
     resistance-amplifier: 2
+  WhiteWolf:
+    cd: 400
+    health-cost: 0.25
+    explosion-min-power: 2
+    explosion-max-power: 3
 
