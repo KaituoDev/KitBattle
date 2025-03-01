@@ -15,11 +15,11 @@ kits-config:
     blindness-duration: 40
     radius: 15
   Fencer:
-    cd: 200
+    cd: 300
     speed-duration: 40
     speed-amplifier: 4
-    strength-duration: 60
-    strength-amplifier: 1
+    strength-duration: 40
+    strength-amplifier: 0
   GravityMage:
     cd: 200
     slowness-duration: 40
@@ -29,8 +29,8 @@ kits-config:
     cd: 200
     speed-duration: 60
     speed-amplifier: 1
-    strength-duration: 60
-    strength-amplifier: 1
+    strength-duration: 40
+    strength-amplifier: 01
   Illusionist:
     cd: 300
     distance: 20
