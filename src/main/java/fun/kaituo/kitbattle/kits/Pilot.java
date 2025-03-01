@@ -22,6 +22,12 @@ public class Pilot extends PlayerData {
     }
 
     @Override
+    public void destroy(Player p) {
+        super.destroy(p);
+        p.setAllowFlight(false);
+    }
+
+    @Override
     public void quit(Player p) {
         super.quit(p);
         p.setAllowFlight(false);
