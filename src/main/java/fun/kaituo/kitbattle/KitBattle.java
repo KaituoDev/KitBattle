@@ -408,7 +408,7 @@ public class KitBattle extends Game implements Listener {
             Player p = Bukkit.getPlayer(uuid);
             assert p != null;
             removePlayer(p);
-            p.teleport(GameUtils.inst().getLobby().getLocation());
+            GameUtils.inst().join(p, GameUtils.inst().getLobby());
         }
     }
 }
