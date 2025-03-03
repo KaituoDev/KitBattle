@@ -62,5 +62,8 @@ kits-config:
     cd: 400
     health-cost: 0.25
     explosion-min-power: 2
-    explosion-max-power: 3
-
+    explosion-max-power: 7
+  Judge:
+    cd: 300
+    distance: 10
+    judgement-duration: 2
