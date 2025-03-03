@@ -238,7 +238,7 @@ public class KitBattle extends Game implements Listener {
     }
 
     private void registerKits() {
-        Reflections reflections = new Reflections("fun.kaituo.kitbattle.kits");
+        Reflections reflections = new Reflections("fun.kaituo.kitbattle.kit");
         Set<Class<? extends PlayerData>> kitClassesFound = reflections.getSubTypesOf(PlayerData.class);
         for (Class<? extends PlayerData> kitClass : kitClassesFound) {
             this.kitClasses.put(kitClass.getSimpleName(), kitClass);
