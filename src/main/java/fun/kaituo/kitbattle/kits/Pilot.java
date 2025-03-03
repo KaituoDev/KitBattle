@@ -22,20 +22,20 @@ public class Pilot extends PlayerData {
     }
 
     @Override
-    public void destroy(Player p) {
-        super.destroy(p);
+    public void onDestroy(Player p) {
+        super.onDestroy(p);
         p.setAllowFlight(false);
     }
 
     @Override
-    public void quit(Player p) {
-        super.quit(p);
+    public void onQuit(Player p) {
+        super.onQuit(p);
         p.setAllowFlight(false);
     }
 
     @Override
-    public void rejoin(Player p) {
-        super.rejoin(p);
+    public void onRejoin(Player p) {
+        super.onRejoin(p);
         if (remainingFlyDuration > 0) {
             p.setAllowFlight(true);
         }

@@ -52,15 +52,15 @@ public class Smasher extends PlayerData {
     }
 
     @Override
-    public void quit(Player p) {
-        super.quit(p);
+    public void onQuit(Player p) {
+        super.onQuit(p);
         p.setAllowFlight(false);
         p.setFlySpeed(0.1f);
     }
 
     @Override
-    public void destroy(Player p) {
-        super.destroy(p);
+    public void onDestroy(Player p) {
+        super.onDestroy(p);
         p.setAllowFlight(false);
         p.setFlySpeed(0.1f);
     }

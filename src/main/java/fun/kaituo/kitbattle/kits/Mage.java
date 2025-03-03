@@ -42,22 +42,22 @@ public class Mage extends PlayerData implements Listener {
     }
 
     @Override
-    public void destroy(Player p) {
-        super.destroy(p);
+    public void onDestroy(Player p) {
+        super.onDestroy(p);
         clearFireballs();
         HandlerList.unregisterAll(this);
     }
 
     @Override
-    public void quit(Player p) {
-        super.quit(p);
+    public void onQuit(Player p) {
+        super.onQuit(p);
         clearFireballs();
         HandlerList.unregisterAll(this);
     }
 
     @Override
-    public void rejoin(Player p) {
-        super.rejoin(p);
+    public void onRejoin(Player p) {
+        super.onRejoin(p);
         Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
     }
 
