@@ -30,7 +30,7 @@ kits-config:
     speed-duration: 60
     speed-amplifier: 1
     strength-duration: 40
-    strength-amplifier: 01
+    strength-amplifier: 0
   Illusionist:
     cd: 300
     distance: 20
@@ -49,7 +49,7 @@ kits-config:
     third-arrow-downward-speed: -4
   Smasher:
     cd: 400
-    explosion-power: 4
+    explosion-power: 5
   Tracer:
     cd: 200
     distance: 5
@@ -65,5 +65,5 @@ kits-config:
     explosion-max-power: 7
   Judge:
     cd: 300
-    distance: 10
+    distance: 20
     judgement-duration: 2

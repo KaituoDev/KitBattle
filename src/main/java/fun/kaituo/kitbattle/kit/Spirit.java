@@ -22,7 +22,7 @@ public class Spirit extends PlayerData {
     public boolean castSkill() {
         World world = p.getWorld();
         p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, -1, 1, false, false));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, -1, 1));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, -1, 0));
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1));
         world.playSound(p.getLocation(), Sound.ENTITY_WITHER_AMBIENT , SoundCategory.PLAYERS, SOUND_VOLUME, 1);
         world.spawnParticle(Particle.ANGRY_VILLAGER, p.getLocation(), PARTICLE_COUNT, 3, 3, 3);
