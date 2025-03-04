@@ -116,7 +116,7 @@ public class Sounds extends PlayerData implements Listener {
     }
 
 
-    public void destroy(Player p) {
+    public void onDestroy(Player p) {
         super.onDestroy(p);
         HandlerList.unregisterAll(this);
     }
