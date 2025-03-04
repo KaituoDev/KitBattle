@@ -22,28 +22,28 @@ public class Pilot extends PlayerData {
     }
 
     @Override
-    public void onDestroy(Player p) {
-        super.onDestroy(p);
+    public void onDestroy() {
         p.setAllowFlight(false);
+        super.onDestroy();
     }
 
     @Override
-    public void onQuit(Player p) {
-        super.onQuit(p);
+    public void onQuit() {
         p.setAllowFlight(false);
+        super.onQuit();
     }
 
     @Override
-    public void onRejoin(Player p) {
-        super.onRejoin(p);
+    public void onRejoin() {
+        super.onRejoin();
         if (remainingFlyDuration > 0) {
             p.setAllowFlight(true);
         }
     }
 
     @Override
-    public void tick(Player p) {
-        super.tick(p);
+    public void tick() {
+        super.tick();
         if (remainingFlyDuration > 0) {
             remainingFlyDuration -= 1;
         }
@@ -53,7 +53,7 @@ public class Pilot extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         World world = p.getWorld();
         world.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH , SoundCategory.PLAYERS, SOUND_VOLUME, 1);
         world.spawnParticle(Particle.END_ROD, p.getLocation(), PARTICLE_COUNT, 3.0, 3.0, 3.0);

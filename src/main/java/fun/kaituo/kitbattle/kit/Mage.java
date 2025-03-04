@@ -1,19 +1,12 @@
 package fun.kaituo.kitbattle.kit;
 
-import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 
@@ -31,7 +24,6 @@ public class Mage extends PlayerData implements Listener {
     public Mage(Player p) {
         super(p);
         explosionPower = (float) getConfigDouble("explosion-power");
-        Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
     }
 
     private void clearFireballs() {
@@ -42,27 +34,24 @@ public class Mage extends PlayerData implements Listener {
     }
 
     @Override
-    public void onDestroy(Player p) {
-        super.onDestroy(p);
+    public void onDestroy() {
         clearFireballs();
-        HandlerList.unregisterAll(this);
+        super.onDestroy();
     }
 
     @Override
-    public void onQuit(Player p) {
-        super.onQuit(p);
+    public void onQuit() {
         clearFireballs();
-        HandlerList.unregisterAll(this);
+        super.onQuit();
     }
 
     @Override
-    public void onRejoin(Player p) {
-        super.onRejoin(p);
-        Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
+    public void onRejoin() {
+        super.onRejoin();
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         World world = p.getWorld();
         Location startLoc = p.getEyeLocation().clone().add(p.getEyeLocation().getDirection());
         Fireball fireball = (Fireball) world.spawnEntity(startLoc, EntityType.FIREBALL, false);

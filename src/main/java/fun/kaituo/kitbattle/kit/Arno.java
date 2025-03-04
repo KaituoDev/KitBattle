@@ -11,8 +11,8 @@ public class Arno extends PlayerData {
         super(p);
     }
 
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0));
         p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, -1, 1));
         p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0));

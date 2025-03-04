@@ -26,7 +26,7 @@ public class Uncrowned extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         World world = p.getWorld();
         p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, glowingDuration, 0));
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, resistanceDuration, resistanceAmplifier));

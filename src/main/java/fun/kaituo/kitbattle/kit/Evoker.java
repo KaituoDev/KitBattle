@@ -27,7 +27,7 @@ public class Evoker extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         Player victim = KitBattle.inst().getNearestEnemy(p, radius);
         if (victim == null) {
             return false;

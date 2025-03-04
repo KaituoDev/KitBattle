@@ -19,8 +19,8 @@ public class Fencer extends PlayerData {
         strengthAmplifier = getConfigInt("strength-amplifier");
     }
 
-
-    public boolean castSkill(Player p) {
+    @Override
+    public boolean castSkill() {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speedDuration, speedAmplifier));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strengthDuration, strengthAmplifier));
         return true;

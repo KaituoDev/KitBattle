@@ -19,7 +19,7 @@ public class Spirit extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         World world = p.getWorld();
         p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, -1, 1, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, -1, 1));

@@ -28,7 +28,7 @@ public class Hysteria extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speedDuration, speedAmplifier));
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strengthDuration, strengthAmplifier));
         World world = p.getWorld();

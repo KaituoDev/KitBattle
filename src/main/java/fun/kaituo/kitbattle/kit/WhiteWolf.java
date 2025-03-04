@@ -16,7 +16,7 @@ public class WhiteWolf extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         float healthPercentage = (float) (p.getHealth() / 40);
         p.setHealth(p.getHealth() * (1 - healthCost));
         float power = explosionMinPower + (explosionMaxPower - explosionMinPower) * (1 - healthPercentage);

@@ -11,8 +11,8 @@ public class Striker extends PlayerData {
         super(p);
     }
         @Override
-        public void applyPotionEffects(Player p){
-            super.applyPotionEffects(p);
+        public void applyPotionEffects(){
+            super.applyPotionEffects();
             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, -1, 0, false, false));
         }
     }

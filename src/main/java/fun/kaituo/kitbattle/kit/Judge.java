@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,7 +22,7 @@ public class Judge extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         // Get the player to lock on to (within 20 blocks)
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),
@@ -74,12 +73,10 @@ public class Judge extends PlayerData {
     @EventHandler
     public void onAnvilDamage(EntityDamageByEntityEvent event) {
         // Check if the entity causing the damage is a falling anvil
-        if (event.getDamager() instanceof FallingBlock) {
-            FallingBlock anvil = (FallingBlock) event.getDamager();
+        if (event.getDamager() instanceof FallingBlock anvil) {
             if (anvil.getBlockData().getMaterial() == Material.ANVIL) {
                 // Check if the damaged entity is a player
-                if (event.getEntity() instanceof Player) {
-                    Player target = (Player) event.getEntity();
+                if (event.getEntity() instanceof Player target) {
                     // Ensure the damage is being dealt by an anvil spawned by the skill
                     if (target.getHealth() > 0) {
                         // Deal damage as an anvil falling
@@ -89,8 +86,6 @@ public class Judge extends PlayerData {
             }
         }
     }
-
-
 }
 
 

@@ -12,8 +12,8 @@ public class Thorns extends PlayerData {
     }
 
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 0, false, false));
     }
 }

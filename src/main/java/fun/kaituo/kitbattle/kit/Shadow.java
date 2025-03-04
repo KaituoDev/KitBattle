@@ -12,8 +12,8 @@ public class Shadow extends PlayerData {
     }
 
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,-1,0, false, false));
     }
 }

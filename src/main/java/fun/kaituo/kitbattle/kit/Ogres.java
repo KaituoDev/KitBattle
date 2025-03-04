@@ -13,8 +13,8 @@ public class Ogres extends PlayerData {
     }
 
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,-1,1, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST,-1,14, false, false));
     }

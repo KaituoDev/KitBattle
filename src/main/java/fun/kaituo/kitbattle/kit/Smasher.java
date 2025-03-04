@@ -22,7 +22,7 @@ public class Smasher extends PlayerData {
         explosionPower = (float) getConfigDouble("explosion-power");
     }
 
-    private boolean isOnGround(Player p) {
+    private boolean isOnGround() {
         Block block1 = p.getLocation().subtract(-0.3, 1, -0.3).getBlock();
         Block block2 = p.getLocation().subtract(0.3, 1, -0.3).getBlock();
         Block block3 = p.getLocation().subtract(-0.3, 1, 0.3).getBlock();
@@ -35,8 +35,8 @@ public class Smasher extends PlayerData {
             block5.getType().isSolid() || block6.getType().isSolid() || block7.getType().isSolid() || block8.getType().isSolid();
     }
 
-    private boolean tryExplode(Player p) {
-        if (isOnGround(p) && !hasLanded) {
+    private boolean tryExplode() {
+        if (isOnGround() && !hasLanded) {
             hasLanded = true;
             remainingFlyTime = 0;
             p.getWorld().createExplosion(p.getLocation(), explosionPower, false, false, p);
@@ -52,22 +52,22 @@ public class Smasher extends PlayerData {
     }
 
     @Override
-    public void onQuit(Player p) {
-        super.onQuit(p);
+    public void onQuit() {
         p.setAllowFlight(false);
         p.setFlySpeed(0.1f);
+        super.onQuit();
     }
 
     @Override
-    public void onDestroy(Player p) {
-        super.onDestroy(p);
+    public void onDestroy() {
         p.setAllowFlight(false);
         p.setFlySpeed(0.1f);
+        super.onDestroy();
     }
 
     @Override
-    public void tick(Player p) {
-        super.tick(p);
+    public void tick() {
+        super.tick();
         if (remainingFlyTime > 40) {
             Vector v = p.getVelocity().clone();
             v.setY(5000);
@@ -76,7 +76,7 @@ public class Smasher extends PlayerData {
             p.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 2, 99));
             p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 2, 9));
         } else if (remainingFlyTime > 0) {
-            if (tryExplode(p)) {
+            if (tryExplode()) {
                 return;
             }
             remainingFlyTime -= 1;
@@ -93,12 +93,12 @@ public class Smasher extends PlayerData {
             p.setVelocity(v);
             p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 30, 4, false, false));
         } else {
-            tryExplode(p);
+            tryExplode();
         }
     }
 
     @Override
-    public void tryCastSkill(Player p) {
+    public void tryCastSkill() {
         if (maxCoolDownTicks == 0) {
             p.sendMessage("§c你没有技能！");
             return;
@@ -107,14 +107,14 @@ public class Smasher extends PlayerData {
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§c§l技能冷却中！"));
             return;
         }
-        if (castSkill(p)) {
+        if (castSkill()) {
             maxCoolDownTicks = 100000;
             coolDownTicks = maxCoolDownTicks;
         }
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         if (!hasLanded) {
             return false;
         }

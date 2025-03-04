@@ -1,25 +1,17 @@
 package fun.kaituo.kitbattle.kit;
 
-import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
+import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.Material;
 
-import javax.xml.crypto.Data;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.HashMap;
+import java.util.*;
 
-public class Sounds extends PlayerData implements Listener {
+public class Sounds extends PlayerData{
     private final Random random = new Random();
     // 定义每种药水效果的持续时间和概率
     private final Map<PotionEffectType, Integer> effectDurations = new HashMap<>();
@@ -63,24 +55,20 @@ public class Sounds extends PlayerData implements Listener {
                 PotionEffectType.WITHER,
                 PotionEffectType.LEVITATION
         );
-
-        // 注册事件监听器
-        KitBattle.inst().getServer().getPluginManager().registerEvents(this, KitBattle.inst());
     }
-
-
 
     @EventHandler
     public void onPlayerShootArrow(EntityShootBowEvent event) {
-
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
-            if ( KitBattle.inst().playerIdDataMap.get(player.getUniqueId()) instanceof Sounds)
-            // 确保玩家持有弓，并射出了箭
-            if (event.getBow() != null && event.getBow().getType() == Material.BOW) {
-                Arrow arrow = (Arrow) event.getProjectile();
-                applyRandomPotionEffect(arrow);
-            }
+        if (p == null) {
+            return;
+        }
+        if (!event.getEntity().getUniqueId().equals(playerId)) {
+            return;
+        }
+        // 确保玩家持有弓，并射出了箭
+        if (event.getBow() != null && event.getBow().getType() == Material.BOW) {
+            Arrow arrow = (Arrow) event.getProjectile();
+            applyRandomPotionEffect(arrow);
         }
     }
 
@@ -113,14 +101,7 @@ public class Sounds extends PlayerData implements Listener {
                 return effect;
             }
         }
-
         // 默认返回第一个效果（应该永远不会到达这里）
-        return availableEffects.get(0);
-    }
-
-
-    public void onDestroy(Player p) {
-        super.onDestroy(p);
-        HandlerList.unregisterAll(this);
+        return availableEffects.getFirst();
     }
 }

@@ -23,7 +23,7 @@ public class Tracer extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         Player target = KitBattle.inst().getNearestEnemy(p, 9999);
         if (target == null) {
             return false;

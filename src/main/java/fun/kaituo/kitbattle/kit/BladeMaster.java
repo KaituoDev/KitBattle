@@ -23,7 +23,8 @@ public class BladeMaster extends PlayerData {
         skillDamage = getConfigDouble("damage");
     }
 
-    public boolean castSkill(Player p) {
+    @Override
+    public boolean castSkill() {
         Set<Player> victims = KitBattle.inst().getNearbyEnemies(p,skillRadius);
         if (victims.isEmpty()) {
             return false;

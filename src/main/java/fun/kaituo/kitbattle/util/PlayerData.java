@@ -4,15 +4,25 @@ import fun.kaituo.gameutils.util.GameInventory;
 import fun.kaituo.kitbattle.KitBattle;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
-public abstract class PlayerData {
+public abstract class PlayerData implements Listener  {
+    protected final UUID playerId;
+    protected Player p;
+
     protected Location location;
     protected final Collection<PotionEffect> potionEffects = new ArrayList<>();
     protected double health;
@@ -22,22 +32,34 @@ public abstract class PlayerData {
     protected long maxCoolDownTicks;
     protected long coolDownTicks;
 
+    protected final Set<Integer> taskIds = new HashSet<>();
+
     public PlayerData(Player p) {
+        playerId = p.getUniqueId();
+        this.p = p;
         maxCoolDownTicks = getConfigLong("cd");
         coolDownTicks = 0;
-        applyInventory(p);
-        applyPotionEffects(p);
+        applyInventory();
+        applyPotionEffects();
         p.setHealth(40);
+        Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
+        taskIds.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(KitBattle.inst(), this::tick, 1, 1));
     }
 
-    public void onDestroy(Player p) {}
+    public void onDestroy() {
+        HandlerList.unregisterAll(this);
+        for (int i : taskIds) {
+            Bukkit.getScheduler().cancelTask(i);
+        }
+        taskIds.clear();
+    }
 
-    public void applyPotionEffects(Player p) {
+    public void applyPotionEffects() {
         p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
     }
 
-    public void applyInventory(Player p) {
+    public void applyInventory() {
         GameInventory inv = KitBattle.inst().getInv(this.getClass().getSimpleName());
         if (inv != null) {
             inv.apply(p);
@@ -46,7 +68,10 @@ public abstract class PlayerData {
         }
     }
 
-    public void tick(Player p) {
+    public void tick() {
+        if (p == null) {
+            return;
+        }
         if (maxCoolDownTicks == 0) {
             p.setLevel(0);
             p.setExp(0);
@@ -59,7 +84,7 @@ public abstract class PlayerData {
         p.setExp((1f - (float) coolDownTicks / maxCoolDownTicks));
     }
 
-    public void onQuit(Player p) {
+    public void onQuit() {
         location = p.getLocation();
         potionEffects.clear();
         potionEffects.addAll(p.getActivePotionEffects());
@@ -67,9 +92,13 @@ public abstract class PlayerData {
         foodLevel = p.getFoodLevel();
         saturation = p.getSaturation();
         inventory = new GameInventory(p);
+        p = null;
     }
 
-    public void onRejoin(Player p) {
+    public void onRejoin() {
+        Player p = Bukkit.getPlayer(playerId);
+        assert p != null;
+        this.p = p;
         p.teleport(location);
         p.addPotionEffects(potionEffects);
         p.setHealth(health);
@@ -78,7 +107,32 @@ public abstract class PlayerData {
         inventory.apply(p);
     }
 
-    public void tryCastSkill(Player p) {
+    @EventHandler
+    public void onPlayerTryCastSkill(PlayerInteractEvent e) {
+        if (p == null) {
+            return;
+        }
+        if (!e.getPlayer().getUniqueId().equals(playerId)) {
+            return;
+        }
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            return;
+        }
+        ItemStack item = e.getItem();
+        if (item == null) {
+            return;
+        }
+        if (item.getItemMeta() == null) {
+            return;
+        }
+        // We use fortune enchantment to identify skill items
+        if (!item.getItemMeta().hasEnchant(Enchantment.FORTUNE)) {
+            return;
+        }
+        tryCastSkill();
+    }
+
+    public void tryCastSkill() {
         if (maxCoolDownTicks == 0) {
             p.sendMessage("§c你没有技能！");
             return;
@@ -87,7 +141,7 @@ public abstract class PlayerData {
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§c§l技能冷却中！"));
             return;
         }
-        if (castSkill(p)) {
+        if (castSkill()) {
             if (KitBattle.inst().isInfiniteFirepower()) {
                 maxCoolDownTicks = (long) (getConfigLong("cd") * (1 - KitBattle.inst().getCooldownReductionMultiplier()));
             } else {
@@ -97,7 +151,7 @@ public abstract class PlayerData {
         }
     }
 
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         return false;
     }
 
