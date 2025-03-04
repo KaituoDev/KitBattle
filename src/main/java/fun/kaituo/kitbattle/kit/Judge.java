@@ -9,6 +9,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -61,6 +62,8 @@ public class Judge extends PlayerData {
 
             anvil.setGravity(false); // Disable gravity initially to make it stay in the air
             anvil.setVelocity(new Vector(0, 0, 0)); // Make it stationary
+            anvil.setDropItem(false); // Prevent the anvil from dropping as an item
+            anvil.setHurtEntities(false); // Prevent the anvil from breaking blocks or hurting entities upon landing
 
             // Set the anvil to start falling after 1 second
             Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> {
@@ -83,6 +86,17 @@ public class Judge extends PlayerData {
                         event.setDamage(5.0); // Adjust the damage as needed
                     }
                 }
+            }
+        }
+    }
+    @EventHandler
+    public void onAnvilLand(EntityChangeBlockEvent event) {
+        // Check if the event involves a falling anvil
+        if (event.getEntity() instanceof FallingBlock) {
+            FallingBlock anvil = (FallingBlock) event.getEntity();
+            if (anvil.getBlockData().getMaterial() == Material.ANVIL) {
+                // If the anvil lands on the ground, schedule it for removal
+                Bukkit.getScheduler().runTaskLater(KitBattle.inst(), anvil::remove, 1L); // Delay for 1 tick
             }
         }
     }
