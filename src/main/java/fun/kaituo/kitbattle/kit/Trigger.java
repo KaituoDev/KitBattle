@@ -7,5 +7,6 @@ import org.bukkit.entity.Player;
 public class Trigger extends PlayerData {
     public Trigger(Player p) {
         super(p);
+        p.setHealth(60);
     }
 }

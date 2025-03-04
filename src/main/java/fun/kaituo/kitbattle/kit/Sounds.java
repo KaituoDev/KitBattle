@@ -22,26 +22,32 @@ public class Sounds extends PlayerData{
         super(p);
 
         // 设置药水效果的持续时间（单位：tick，20 ticks = 1秒）
-        effectDurations.put(PotionEffectType.SLOWNESS, 20);
+        effectDurations.put(PotionEffectType.SLOWNESS, 40);
         effectDurations.put(PotionEffectType.GLOWING, 100);
         effectDurations.put(PotionEffectType.POISON, 120);
         effectDurations.put(PotionEffectType.INSTANT_DAMAGE, 0);
         effectDurations.put(PotionEffectType.DARKNESS, 40);
         effectDurations.put(PotionEffectType.WEAKNESS, 40);
-        effectDurations.put(PotionEffectType.INFESTED, 100);
+        effectDurations.put(PotionEffectType.INFESTED, 200);
         effectDurations.put(PotionEffectType.WITHER, 100);
         effectDurations.put(PotionEffectType.LEVITATION, 60);
+        effectDurations.put(PotionEffectType.REGENERATION, 100);
+        effectDurations.put(PotionEffectType.RESISTANCE, 100);
+        effectDurations.put(PotionEffectType.HASTE, 100);
 
         // 设置药水效果的出现概率（权重，数字越大，概率越高）
-        effectProbabilities.put(PotionEffectType.SLOWNESS, 20);
-        effectProbabilities.put(PotionEffectType.GLOWING, 20);
+        effectProbabilities.put(PotionEffectType.SLOWNESS, 10);
+        effectProbabilities.put(PotionEffectType.GLOWING, 10);
         effectProbabilities.put(PotionEffectType.POISON, 10);
         effectProbabilities.put(PotionEffectType.INSTANT_DAMAGE, 20);
-        effectProbabilities.put(PotionEffectType.DARKNESS, 5);
+        effectProbabilities.put(PotionEffectType.DARKNESS, 10);
         effectProbabilities.put(PotionEffectType.WEAKNESS, 10);
         effectProbabilities.put(PotionEffectType.INFESTED, 5);
         effectProbabilities.put(PotionEffectType.WITHER, 5);
         effectProbabilities.put(PotionEffectType.LEVITATION, 5);
+        effectProbabilities.put(PotionEffectType.REGENERATION, 10);
+        effectProbabilities.put(PotionEffectType.RESISTANCE, 5);
+        effectProbabilities.put(PotionEffectType.HASTE, 5);
 
         // 初始化可用的药水效果列表
         availableEffects = Arrays.asList(
@@ -53,7 +59,10 @@ public class Sounds extends PlayerData{
                 PotionEffectType.WEAKNESS,
                 PotionEffectType.INFESTED,
                 PotionEffectType.WITHER,
-                PotionEffectType.LEVITATION
+                PotionEffectType.LEVITATION,
+                PotionEffectType.REGENERATION,
+                PotionEffectType.RESISTANCE,
+                PotionEffectType.HASTE
         );
     }
 
