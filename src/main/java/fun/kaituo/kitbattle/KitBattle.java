@@ -138,7 +138,7 @@ public class KitBattle extends Game implements Listener {
         }
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
         if (originalData != null) {
-            originalData.destroy(p);
+            originalData.onDestroy(p);
         }
         playerIdDataMap.put(p.getUniqueId(), data);
     }
@@ -151,7 +151,7 @@ public class KitBattle extends Game implements Listener {
         p.teleport(location);
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
         if (originalData != null) {
-            originalData.destroy(p);
+            originalData.onDestroy(p);
         }
         playerIdDataMap.remove(p.getUniqueId());
     }
@@ -344,7 +344,7 @@ public class KitBattle extends Game implements Listener {
 
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.rejoin(p);
+            data.onRejoin(p);
         } else {
             toHub(p);
         }
@@ -354,7 +354,7 @@ public class KitBattle extends Game implements Listener {
     public void removePlayer(Player p) {
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.quit(p);
+            data.onQuit(p);
         }
         p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());

@@ -30,7 +30,7 @@ public abstract class PlayerData {
         p.setHealth(40);
     }
 
-    public void destroy(Player p) {}
+    public void onDestroy(Player p) {}
 
     public void applyPotionEffects(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4, false, false));
@@ -59,7 +59,7 @@ public abstract class PlayerData {
         p.setExp((1f - (float) coolDownTicks / maxCoolDownTicks));
     }
 
-    public void quit(Player p) {
+    public void onQuit(Player p) {
         location = p.getLocation();
         potionEffects.clear();
         potionEffects.addAll(p.getActivePotionEffects());
@@ -69,7 +69,7 @@ public abstract class PlayerData {
         inventory = new GameInventory(p);
     }
 
-    public void rejoin(Player p) {
+    public void onRejoin(Player p) {
         p.teleport(location);
         p.addPotionEffects(potionEffects);
         p.setHealth(health);
