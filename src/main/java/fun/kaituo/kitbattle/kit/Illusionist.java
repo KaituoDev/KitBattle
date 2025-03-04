@@ -16,7 +16,7 @@ public class Illusionist extends PlayerData {
     }
 
     @Override
-    public boolean castSkill(Player p) {
+    public boolean castSkill() {
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),

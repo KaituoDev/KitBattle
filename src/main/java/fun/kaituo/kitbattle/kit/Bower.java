@@ -12,8 +12,8 @@ public class Bower extends PlayerData {
     }
 
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, -1, 2, false, false));
     }
 }

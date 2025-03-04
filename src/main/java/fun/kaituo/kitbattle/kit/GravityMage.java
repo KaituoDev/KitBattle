@@ -21,7 +21,8 @@ public class GravityMage extends PlayerData {
         radius = getConfigInt("radius");
     }
 
-    public boolean castSkill(Player p) {
+    @Override
+    public boolean castSkill() {
         Set<Player> enemies =  KitBattle.inst().getNearbyEnemies(p, radius);
         if (enemies.isEmpty()) {
             return false;

@@ -26,7 +26,8 @@ public class Elf extends PlayerData {
         poisonAmplifier = getConfigInt("poison-amplifier");
     }
 
-    public boolean castSkill(Player p) {
+    @Override
+    public boolean castSkill() {
         if (p.getInventory().contains(Material.TIPPED_ARROW)) {
             return false;
         }

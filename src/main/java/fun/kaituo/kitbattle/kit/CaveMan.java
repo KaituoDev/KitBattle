@@ -11,8 +11,8 @@ public class CaveMan extends PlayerData {
         super(p);
     }
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, -1, 1, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 0, false, false));
     }

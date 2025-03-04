@@ -16,7 +16,6 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -138,7 +137,7 @@ public class KitBattle extends Game implements Listener {
         }
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
         if (originalData != null) {
-            originalData.onDestroy(p);
+            originalData.onDestroy();
         }
         playerIdDataMap.put(p.getUniqueId(), data);
     }
@@ -151,7 +150,7 @@ public class KitBattle extends Game implements Listener {
         p.teleport(location);
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
         if (originalData != null) {
-            originalData.onDestroy(p);
+            originalData.onDestroy();
         }
         playerIdDataMap.remove(p.getUniqueId());
     }
@@ -288,31 +287,6 @@ public class KitBattle extends Game implements Listener {
     }
 
     @EventHandler
-    public void onPlayerTryCastSkill(PlayerInteractEvent e) {
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-            return;
-        }
-        if (!playerIds.contains(e.getPlayer().getUniqueId())) {
-            return;
-        }
-        ItemStack item = e.getItem();
-        if (item == null) {
-            return;
-        }
-        if (item.getItemMeta() == null) {
-            return;
-        }
-        // We use fortune enchantment to identify skill items
-        if (!item.getItemMeta().hasEnchant(Enchantment.FORTUNE)) {
-            return;
-        }
-        Player p = e.getPlayer();
-        PlayerData data = playerIdDataMap.get(p.getUniqueId());
-        assert data != null;
-        data.tryCastSkill(p);
-    }
-
-    @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
         if (!playerIds.contains(p.getUniqueId())) {
@@ -344,7 +318,7 @@ public class KitBattle extends Game implements Listener {
 
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.onRejoin(p);
+            data.onRejoin();
         } else {
             toHub(p);
         }
@@ -354,7 +328,7 @@ public class KitBattle extends Game implements Listener {
     public void removePlayer(Player p) {
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
-            data.onQuit(p);
+            data.onQuit();
         }
         p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());
@@ -368,16 +342,7 @@ public class KitBattle extends Game implements Listener {
 
     @Override
     public void tick() {
-        for (UUID uuid : playerIds) {
-            PlayerData data = playerIdDataMap.get(uuid);
-            // If player is not in the arena
-            if (data == null) {
-                return;
-            }
-            Player p = Bukkit.getPlayer(uuid);
-            assert p != null;
-            data.tick(p);
-        }
+
     }
 
     @Override

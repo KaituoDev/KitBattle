@@ -12,8 +12,8 @@ public class Ninja extends PlayerData {
     }
 
     @Override
-    public void applyPotionEffects(Player p) {
-        super.applyPotionEffects(p);
+    public void applyPotionEffects() {
+        super.applyPotionEffects();
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,-1,1, false, false));
     }
 }
