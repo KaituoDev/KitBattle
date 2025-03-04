@@ -12,6 +12,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.Material;
 
+import javax.xml.crypto.Data;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,6 @@ import java.util.HashMap;
 
 public class Sounds extends PlayerData implements Listener {
     private final Random random = new Random();
-
     // 定义每种药水效果的持续时间和概率
     private final Map<PotionEffectType, Integer> effectDurations = new HashMap<>();
     private final Map<PotionEffectType, Integer> effectProbabilities = new HashMap<>();
@@ -68,11 +68,14 @@ public class Sounds extends PlayerData implements Listener {
         KitBattle.inst().getServer().getPluginManager().registerEvents(this, KitBattle.inst());
     }
 
+
+
     @EventHandler
     public void onPlayerShootArrow(EntityShootBowEvent event) {
+
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-
+            if ( KitBattle.inst().playerIdDataMap.get(player.getUniqueId()) instanceof Sounds)
             // 确保玩家持有弓，并射出了箭
             if (event.getBow() != null && event.getBow().getType() == Material.BOW) {
                 Arrow arrow = (Arrow) event.getProjectile();
