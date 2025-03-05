@@ -46,7 +46,20 @@ public abstract class PlayerData implements Listener  {
         taskIds.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(KitBattle.inst(), this::tick, 1, 1));
     }
 
+    public static void reset(Player p) {
+        p.getInventory().clear();
+        for (PotionEffect effect : p.getActivePotionEffects()) {
+            p.removePotionEffect(effect.getType());
+        }
+        p.setHealth(20);
+        p.setFoodLevel(20);
+        p.setSaturation(5);
+        p.setExp(0);
+        p.setLevel(0);
+    }
+
     public void onDestroy() {
+        reset(p);
         HandlerList.unregisterAll(this);
         for (int i : taskIds) {
             Bukkit.getScheduler().cancelTask(i);
@@ -92,6 +105,7 @@ public abstract class PlayerData implements Listener  {
         foodLevel = p.getFoodLevel();
         saturation = p.getSaturation();
         inventory = new GameInventory(p);
+        reset(p);
         p = null;
     }
 
