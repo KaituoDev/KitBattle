@@ -66,18 +66,6 @@ public class KitBattle extends Game implements Listener {
 
     private ProtocolManager protocolManager;
 
-    public static void reset(Player p) {
-        for (PotionEffect effect : p.getActivePotionEffects()) {
-            p.removePotionEffect(effect.getType());
-        }
-        p.getInventory().clear();
-        p.setHealth(20);
-        p.setFoodLevel(20);
-        p.setSaturation(5);
-        p.setLevel(0);
-        p.setExp(0);
-    }
-
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isInArena(Player p) {
         boolean inGame = playerIds.contains(p.getUniqueId());
@@ -124,7 +112,6 @@ public class KitBattle extends Game implements Listener {
     }
 
     public void toArena(Player p, Class<? extends PlayerData> kitClass) {
-        reset(p);
         p.teleport(getRandomSpawnLoc());
         p.playSound(p, Sound.ITEM_ARMOR_EQUIP_GOLD, SOUND_VOLUME, 1);
         PlayerData data;
@@ -143,16 +130,15 @@ public class KitBattle extends Game implements Listener {
     }
 
     public void toHub(Player p) {
-        reset(p);
-        p.getInventory().addItem(getMenu());
-        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
-        p.teleport(location);
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
         if (originalData != null) {
             originalData.onDestroy();
         }
         playerIdDataMap.remove(p.getUniqueId());
+        p.getInventory().addItem(getMenu());
+        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
+        p.teleport(location);
     }
 
     public Class<? extends PlayerData> getKitClass(String name) {
@@ -332,7 +318,6 @@ public class KitBattle extends Game implements Listener {
         }
         p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());
-        reset(p);
     }
 
     @Override
