@@ -46,7 +46,20 @@ public abstract class PlayerData implements Listener  {
         taskIds.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(KitBattle.inst(), this::tick, 1, 1));
     }
 
+    public void resetPlayer() {
+        p.getInventory().clear();
+        for (PotionEffect effect : p.getActivePotionEffects()) {
+            p.removePotionEffect(effect.getType());
+        }
+        p.setHealth(20);
+        p.setFoodLevel(20);
+        p.setSaturation(5);
+        p.setExp(0);
+        p.setLevel(0);
+    }
+
     public void onDestroy() {
+        resetPlayer();
         HandlerList.unregisterAll(this);
         for (int i : taskIds) {
             Bukkit.getScheduler().cancelTask(i);
@@ -69,9 +82,6 @@ public abstract class PlayerData implements Listener  {
     }
 
     public void tick() {
-        if (p == null) {
-            return;
-        }
         if (maxCoolDownTicks == 0) {
             p.setLevel(0);
             p.setExp(0);
@@ -92,6 +102,12 @@ public abstract class PlayerData implements Listener  {
         foodLevel = p.getFoodLevel();
         saturation = p.getSaturation();
         inventory = new GameInventory(p);
+        resetPlayer();
+        HandlerList.unregisterAll(this);
+        for (int i : taskIds) {
+            Bukkit.getScheduler().cancelTask(i);
+        }
+        taskIds.clear();
         p = null;
     }
 
@@ -105,13 +121,12 @@ public abstract class PlayerData implements Listener  {
         p.setFoodLevel(foodLevel);
         p.setSaturation(saturation);
         inventory.apply(p);
+        Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
+        taskIds.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(KitBattle.inst(), this::tick, 1, 1));
     }
 
     @EventHandler
     public void onPlayerTryCastSkill(PlayerInteractEvent e) {
-        if (p == null) {
-            return;
-        }
         if (!e.getPlayer().getUniqueId().equals(playerId)) {
             return;
         }

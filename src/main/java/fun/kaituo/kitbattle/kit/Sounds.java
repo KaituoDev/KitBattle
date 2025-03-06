@@ -68,9 +68,6 @@ public class Sounds extends PlayerData{
 
     @EventHandler
     public void onPlayerShootArrow(EntityShootBowEvent event) {
-        if (p == null) {
-            return;
-        }
         if (!event.getEntity().getUniqueId().equals(playerId)) {
             return;
         }
