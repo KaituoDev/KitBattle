@@ -106,6 +106,11 @@ public abstract class PlayerData implements Listener  {
         saturation = p.getSaturation();
         inventory = new GameInventory(p);
         resetPlayer();
+        HandlerList.unregisterAll(this);
+        for (int i : taskIds) {
+            Bukkit.getScheduler().cancelTask(i);
+        }
+        taskIds.clear();
         p = null;
     }
 
@@ -119,6 +124,8 @@ public abstract class PlayerData implements Listener  {
         p.setFoodLevel(foodLevel);
         p.setSaturation(saturation);
         inventory.apply(p);
+        Bukkit.getPluginManager().registerEvents(this, KitBattle.inst());
+        taskIds.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(KitBattle.inst(), this::tick, 1, 1));
     }
 
     @EventHandler
