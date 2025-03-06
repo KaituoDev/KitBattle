@@ -82,9 +82,6 @@ public abstract class PlayerData implements Listener  {
     }
 
     public void tick() {
-        if (p == null) {
-            return;
-        }
         if (maxCoolDownTicks == 0) {
             p.setLevel(0);
             p.setExp(0);
@@ -130,9 +127,6 @@ public abstract class PlayerData implements Listener  {
 
     @EventHandler
     public void onPlayerTryCastSkill(PlayerInteractEvent e) {
-        if (p == null) {
-            return;
-        }
         if (!e.getPlayer().getUniqueId().equals(playerId)) {
             return;
         }
