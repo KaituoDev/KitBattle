@@ -7,11 +7,12 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kit.Birth;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
 import fun.kaituo.kitbattle.util.PlayerData;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -29,11 +30,22 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.*;
-import org.reflections.Reflections;
+import org.bukkit.scoreboard.Criteria;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 import static fun.kaituo.gameutils.util.Misc.getMenu;
 
@@ -113,6 +125,13 @@ public class KitBattle extends Game implements Listener {
     }
 
     public void toArena(Player p, Class<? extends PlayerData> kitClass) {
+        PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
+        if (originalData != null) {
+            originalData.onDestroy();
+        } else {
+            p.removePotionEffect(PotionEffectType.RESISTANCE);
+            p.removePotionEffect(PotionEffectType.SATURATION);
+        }
         p.teleport(getRandomSpawnLoc());
         p.playSound(p, Sound.ITEM_ARMOR_EQUIP_GOLD, SOUND_VOLUME, 1);
         PlayerData data;
@@ -122,10 +141,6 @@ public class KitBattle extends Game implements Listener {
         } catch (Exception e) {
             p.sendMessage("§c初始化职业 " + kitClass.getSimpleName() + " 失败！");
             throw new RuntimeException(e);
-        }
-        PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
-        if (originalData != null) {
-            originalData.onDestroy();
         }
         playerIdDataMap.put(p.getUniqueId(), data);
     }
@@ -224,10 +239,21 @@ public class KitBattle extends Game implements Listener {
     }
 
     private void registerKits() {
-        Reflections reflections = new Reflections("fun.kaituo.kitbattle.kit");
-        Set<Class<? extends PlayerData>> kitClassesFound = reflections.getSubTypesOf(PlayerData.class);
-        for (Class<? extends PlayerData> kitClass : kitClassesFound) {
-            this.kitClasses.put(kitClass.getSimpleName(), kitClass);
+        try (ScanResult scanResult = new ClassGraph()
+                .acceptPackages("fun.kaituo.kitbattle.kit") // 指定扫描的包
+                .enableClassInfo()
+                .scan()) {
+
+            Set<Class<? extends PlayerData>> kitClasses = new HashSet<>(scanResult
+                    .getSubclasses(PlayerData.class.getName()) // 获取子类
+                    .loadClasses(PlayerData.class));
+
+            for (Class<? extends PlayerData> kitClass : kitClasses) {
+                this.kitClasses.put(kitClass.getSimpleName(), kitClass);
+            }
+        } catch (Exception e) {
+            getLogger().warning("Failed to scan for kit classes");
+            throw new RuntimeException(e);
         }
     }
 
@@ -316,6 +342,9 @@ public class KitBattle extends Game implements Listener {
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
         if (data != null) {
             data.onQuit();
+        } else {
+            p.removePotionEffect(PotionEffectType.RESISTANCE);
+            p.removePotionEffect(PotionEffectType.SATURATION);
         }
         p.setScoreboard(mainBoard);
         playerIds.remove(p.getUniqueId());
