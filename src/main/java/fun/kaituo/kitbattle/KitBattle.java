@@ -129,6 +129,7 @@ public class KitBattle extends Game implements Listener {
         if (originalData != null) {
             originalData.onDestroy();
         } else {
+            p.getInventory().clear();
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
@@ -343,6 +344,7 @@ public class KitBattle extends Game implements Listener {
         if (data != null) {
             data.onQuit();
         } else {
+            p.getInventory().clear();
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
