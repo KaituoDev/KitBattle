@@ -1,28 +1,18 @@
 package fun.kaituo.kitbattle.kit;
 
-import com.comphenix.protocol.PacketType;
-import fun.kaituo.gameutils.game.Game;
-import fun.kaituo.gameutils.util.GameInventory;
 import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SuspiciousStewMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.Material;
-
-import javax.xml.crypto.Data;
-
-import static org.bukkit.Bukkit.getPlayer;
 
 public class Birth extends PlayerData implements Listener {
 
@@ -35,11 +25,11 @@ public class Birth extends PlayerData implements Listener {
     public void onEntityResurrect(EntityResurrectEvent event) {
         if (!event.getEntity().getUniqueId().equals(playerId)) {
             return;
-    }
+        }
 
         Player p = (Player) event.getEntity();
 
-            onTotemTrigger();  // 执行替换装备和物品的逻辑
+        onTotemTrigger();  // 执行替换装备和物品的逻辑
         Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> {
             p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 0));
             p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, -1, 4));
