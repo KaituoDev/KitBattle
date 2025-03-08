@@ -48,6 +48,20 @@ public class Judge extends PlayerData {
     }
 
     @Override
+    public void tick() {
+        for (FallingBlock anvil : anvils) {
+            if (anvil.isDead()) {
+                continue;
+            }
+            for (Entity victim : anvil.getWorld().getNearbyEntities(anvil.getLocation(),
+                    0.5, 0.5, 0.5, target -> target instanceof Player && !target.equals(p) && KitBattle.inst().isInArena((Player) target))) {
+                ((Player) victim).damage(damage, p);
+            }
+        }
+        super.tick();
+    }
+
+    @Override
     public boolean castSkill() {
         // Get the player to lock on to (within 20 blocks)
         RayTraceResult result = p.getWorld().rayTraceEntities(
@@ -88,32 +102,34 @@ public class Judge extends PlayerData {
     }
 
     private void triggerAnvilRain(Player target) {
-        Location targetLocation = target.getLocation().add(0, 10, 0); // 10 blocks above target
-        targetLocation.setX(targetLocation.getBlockX() + 0.5);
-        targetLocation.setY(targetLocation.getBlockY());
-        targetLocation.setZ(targetLocation.getBlockZ() + 0.5);
-        List<Location> locations = new ArrayList<>();
-        for (double x = targetLocation.getX() - radius; x < targetLocation.getX() + radius; x += 1) {
-            for (double z = targetLocation.getZ() - radius; z < targetLocation.getZ() + radius; z += 1) {
-                if (x == targetLocation.getX() && z == targetLocation.getZ()) {
+        List<Location> locationOffsets = new ArrayList<>();
+        for (int x = - radius; x < radius; x += 1) {
+            for (int z = - radius; z < radius; z += 1) {
+                Location offset = new Location(target.getWorld(), x, 0, z);
+                if (offset.toVector().length() > radius) {
                     continue;
                 }
-                Location l = new Location(targetLocation.getWorld(), x, targetLocation.getBlockY(), z);
-                if (l.distance(targetLocation) > radius) {
-                    continue;
-                }
-                locations.add(l);
+                locationOffsets.add(offset);
             }
         }
         Random rand = new Random();
         // Generate 20 anvils in a 5-block radius around the target's head
         for (int i = 0; i < 20; i++) {
-            int index = rand.nextInt(locations.size());
-            Location anvilLocation = locations.get(index);
-            locations.remove(index);
-            spawnAnvil(anvilLocation);
+            int index = rand.nextInt(locationOffsets.size());
+            Location offset = locationOffsets.get(index);
+            locationOffsets.remove(index);
+            taskIds.add(Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> {
+                if (!KitBattle.inst().isInArena(target)) {
+                    return;
+                }
+                Location targetLocation = target.getLocation().add(0, 10, 0); // 10 blocks above target
+                targetLocation.setX(targetLocation.getBlockX() + 0.5);
+                targetLocation.setY(targetLocation.getBlockY());
+                targetLocation.setZ(targetLocation.getBlockZ() + 0.5);
+                targetLocation = targetLocation.add(offset);
+                spawnAnvil(targetLocation);
+            }, i * 2).getTaskId());
         }
-        spawnAnvil(targetLocation);
     }
 
     @EventHandler
@@ -122,10 +138,6 @@ public class Judge extends PlayerData {
             if (e.getEntity().equals(anvil)) {
                 e.setCancelled(true);
                 anvil.getWorld().playSound(anvil.getLocation(), Sound.BLOCK_ANVIL_LAND, SOUND_VOLUME, 1);
-                for (Entity victim : anvil.getWorld().getNearbyEntities(anvil.getLocation(),
-                        0.5, 0.5, 0.5, target -> target instanceof Player && !target.equals(p) && KitBattle.inst().isInArena((Player) target))) {
-                    ((Player) victim).damage(damage, p);
-                }
                 anvil.remove();
                 anvils.remove(anvil);
                 return;
