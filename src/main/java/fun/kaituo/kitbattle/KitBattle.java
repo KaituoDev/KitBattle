@@ -130,6 +130,7 @@ public class KitBattle extends Game implements Listener {
             originalData.onDestroy();
         } else {
             p.getInventory().clear();
+            p.setSaturation(5);
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
@@ -345,6 +346,7 @@ public class KitBattle extends Game implements Listener {
             data.onQuit();
         } else {
             p.getInventory().clear();
+            p.setSaturation(5);
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
@@ -365,19 +367,21 @@ public class KitBattle extends Game implements Listener {
     @Override
     public void onEnable() {
         super.onEnable();
-
         instance = this;
         saveDefaultConfig();
         updateExtraInfo("§e职业战争", getLoc("hub"));
-        initSigns();
-        initSpawnLocs();
-        initScoreboard();
-        loadKills();
-        registerCommand();
-        registerKits();
         backItem = getItem("back");
         protocolManager = ProtocolLibrary.getProtocolManager();
-        Bukkit.getPluginManager().registerEvents(this, this);
+        initScoreboard();
+        loadKills();
+        initSpawnLocs();
+
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            initSigns();
+            registerCommand();
+            registerKits();
+            Bukkit.getPluginManager().registerEvents(this, this);
+        }, 1);
     }
 
     @Override
