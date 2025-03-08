@@ -34,6 +34,11 @@ kits-config:
   Illusionist:
     cd: 300
     distance: 20
+  Judge:
+    cd: 300
+    radius: 5
+    distance: 20
+    damage: 15
   Mage:
     cd: 280
     explosion-power: 2
@@ -63,7 +68,3 @@ kits-config:
     health-cost: 0.25
     explosion-min-power: 2
     explosion-max-power: 7
-  Judge:
-    cd: 300
-    distance: 20
-    judgement-duration: 2
