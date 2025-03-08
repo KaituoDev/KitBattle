@@ -42,14 +42,14 @@ kits-config:
     fly-duration: 200
   Spirit:
     cd: 200000
-  StormKnight:
-    cd: 300
-    first-arrow-downward-speed: -2
-    second-arrow-downward-speed: -3
-    third-arrow-downward-speed: -4
   Smasher:
     cd: 400
     explosion-power: 5
+  StormKnight:
+    cd: 300
+    first-damage: 8
+    second-damage: 10
+    third-damage: 12
   Tracer:
     cd: 200
     distance: 5
