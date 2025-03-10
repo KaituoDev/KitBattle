@@ -7,7 +7,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
-import fun.kaituo.kitbattle.kit.Birth;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
