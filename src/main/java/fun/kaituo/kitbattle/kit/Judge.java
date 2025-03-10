@@ -5,21 +5,60 @@ import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
+import org.bukkit.Sound;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
+import static fun.kaituo.kitbattle.KitBattle.SOUND_VOLUME;
 
 public class Judge extends PlayerData {
+    private final Set<FallingBlock> anvils = new HashSet<>();
+    private final int radius;
+    private final double damage;
+    private final double distance;
 
     public Judge(Player player) {
         super(player);
+        radius = getConfigInt("radius");
+        damage = getConfigDouble("damage");
+        distance = getConfigDouble("distance");
+    }
+
+    @Override
+    public void onDestroy() {
+        removeAnvils();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onQuit() {
+        removeAnvils();
+        super.onQuit();
+    }
+
+    @Override
+    public void tick() {
+        for (FallingBlock anvil : anvils) {
+            if (anvil.isDead()) {
+                continue;
+            }
+            for (Entity victim : anvil.getWorld().getNearbyEntities(anvil.getLocation(),
+                    0.5, 0.5, 0.5, target -> target instanceof Player && !target.equals(p) && KitBattle.inst().isInArena((Player) target))) {
+                ((Player) victim).damage(damage, p);
+            }
+        }
+        super.tick();
     }
 
     @Override
@@ -28,7 +67,7 @@ public class Judge extends PlayerData {
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
-                20,
+                distance,
                 e -> e != p && e instanceof Player && KitBattle.inst().isInArena((Player) e)
         );
         if (result == null) {
@@ -39,64 +78,69 @@ public class Judge extends PlayerData {
             return false;
         }
 
-
-
         // Trigger Anvil rain skill
-        Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> triggerAnvilRain(p, target), 1L);
+        Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> triggerAnvilRain(target), 1L);
         return  true;
     }
 
-    private void triggerAnvilRain(Player player, Player target) {
-        Location targetLocation = target.getLocation().add(0, 10, 0); // 10 blocks above target
-        Random rand = new Random();
-
-        // Generate 20 anvils in a 5-block radius around the target's head
-        for (int i = 0; i < 20; i++) {
-            double offsetX = rand.nextDouble() * 10 - 5; // Random position within a 5-block radius
-            double offsetZ = rand.nextDouble() * 10 - 5;
-            Location anvilLocation = targetLocation.clone().add(offsetX, 0, offsetZ);
-
-            // Spawn the anvil at this location
-            BlockData data = Material.ANVIL.createBlockData();
-            FallingBlock anvil =  player.getWorld().spawnFallingBlock(anvilLocation,data);
-
-            anvil.setGravity(false); // Disable gravity initially to make it stay in the air
-            anvil.setVelocity(new Vector(0, 0, 0)); // Make it stationary
-            anvil.setDropItem(false); // Prevent the anvil from dropping as an item
-            anvil.setHurtEntities(false); // Prevent the anvil from breaking blocks or hurting entities upon landing
-
-            // Set the anvil to start falling after 1 second
-            Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> {
-                anvil.setGravity(true); // Enable gravity after 1 second to make it fall
-                anvil.setVelocity(new Vector(0, -0.5, 0)); // Apply downward velocity to make it fall
-            }, 20L); // 20 ticks = 1 second
+    private void removeAnvils() {
+        for (FallingBlock anvil : anvils) {
+            anvil.remove();
         }
+        anvils.clear();
     }
 
-    @EventHandler
-    public void onAnvilDamage(EntityDamageByEntityEvent event) {
-        // Check if the entity causing the damage is a falling anvil
-        if (event.getDamager() instanceof FallingBlock anvil) {
-            if (anvil.getBlockData().getMaterial() == Material.ANVIL) {
-                // Check if the damaged entity is a player
-                if (event.getEntity() instanceof Player target) {
-                    // Ensure the damage is being dealt by an anvil spawned by the skill
-                    if (target.getHealth() > 0) {
-                        // Deal damage as an anvil falling
-                        event.setDamage(5.0); // Adjust the damage as needed
-                    }
+    private void spawnAnvil(Location l) {
+        FallingBlock anvil = p.getWorld().spawn(l, FallingBlock.class,
+                fallingBlock -> fallingBlock.setBlockData(Material.ANVIL.createBlockData()));
+
+        anvil.setDropItem(false); // Prevent the anvil from dropping as an item
+        anvil.setVelocity(new Vector(0, -0.5, 0));
+        anvil.setHurtEntities(false);
+
+        anvils.add(anvil);
+    }
+
+    private void triggerAnvilRain(Player target) {
+        List<Location> locationOffsets = new ArrayList<>();
+        for (int x = - radius; x < radius; x += 1) {
+            for (int z = - radius; z < radius; z += 1) {
+                Location offset = new Location(target.getWorld(), x, 0, z);
+                if (offset.toVector().length() > radius) {
+                    continue;
                 }
+                locationOffsets.add(offset);
             }
         }
+        Random rand = new Random();
+        // Generate 20 anvils in a 5-block radius around the target's head
+        for (int i = 0; i < 20; i++) {
+            int index = rand.nextInt(locationOffsets.size());
+            Location offset = locationOffsets.get(index);
+            locationOffsets.remove(index);
+            taskIds.add(Bukkit.getScheduler().runTaskLater(KitBattle.inst(), () -> {
+                if (!KitBattle.inst().isInArena(target)) {
+                    return;
+                }
+                Location targetLocation = target.getLocation().add(0, 10, 0); // 10 blocks above target
+                targetLocation.setX(targetLocation.getBlockX() + 0.5);
+                targetLocation.setY(targetLocation.getBlockY());
+                targetLocation.setZ(targetLocation.getBlockZ() + 0.5);
+                targetLocation = targetLocation.add(offset);
+                spawnAnvil(targetLocation);
+            }, i * 2).getTaskId());
+        }
     }
+
     @EventHandler
-    public void onAnvilLand(EntityChangeBlockEvent event) {
-        // Check if the event involves a falling anvil
-        if (event.getEntity() instanceof FallingBlock) {
-            FallingBlock anvil = (FallingBlock) event.getEntity();
-            if (anvil.getBlockData().getMaterial() == Material.ANVIL) {
-                // If the anvil lands on the ground, schedule it for removal
-                Bukkit.getScheduler().runTaskLater(KitBattle.inst(), anvil::remove, 1L); // Delay for 1 tick
+    public void onAnvilLand(EntityChangeBlockEvent e) {
+        for (FallingBlock anvil : new HashSet<>(anvils)) {
+            if (e.getEntity().equals(anvil)) {
+                e.setCancelled(true);
+                anvil.getWorld().playSound(anvil.getLocation(), Sound.BLOCK_ANVIL_LAND, SOUND_VOLUME, 1);
+                anvil.remove();
+                anvils.remove(anvil);
+                return;
             }
         }
     }

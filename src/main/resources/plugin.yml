@@ -4,6 +4,8 @@ main: fun.kaituo.kitbattle.KitBattle
 version: 2.0
 author: YFshadaow & APairOfMoons
 depend: [GameUtils,ProtocolLib]
+libraries:
+  - io.github.classgraph:classgraph:4.8.179
 softdepend: [Lobby]
 commands:
   kitbattlego:
