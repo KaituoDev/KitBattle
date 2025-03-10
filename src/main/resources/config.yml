@@ -34,6 +34,11 @@ kits-config:
   Illusionist:
     cd: 300
     distance: 20
+  Judge:
+    cd: 300
+    radius: 5
+    distance: 20
+    damage: 15
   Mage:
     cd: 280
     explosion-power: 2
@@ -42,14 +47,14 @@ kits-config:
     fly-duration: 200
   Spirit:
     cd: 200000
-  StormKnight:
-    cd: 300
-    first-arrow-downward-speed: -2
-    second-arrow-downward-speed: -3
-    third-arrow-downward-speed: -4
   Smasher:
     cd: 400
     explosion-power: 5
+  StormKnight:
+    cd: 300
+    first-damage: 8
+    second-damage: 10
+    third-damage: 12
   Tracer:
     cd: 200
     distance: 5
@@ -63,10 +68,6 @@ kits-config:
     health-cost: 0.25
     explosion-min-power: 2
     explosion-max-power: 7
-  Judge:
-    cd: 300
-    distance: 20
-    judgement-duration: 2
   Blueblood:
     cd: 500
     radius: 10
