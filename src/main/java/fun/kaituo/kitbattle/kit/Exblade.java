@@ -11,12 +11,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Exblade extends PlayerData {
-    private GameInventory inventory;
-    private ItemStack BREACH;
-    private ItemStack SHARPNESS;
-    private ItemStack FIRE;
-    private ItemStack POISON;
-
     private static final Set<Material> SWORD_MATERIALS = Set.of(
             Material.WOODEN_SWORD,
             Material.STONE_SWORD,
@@ -29,50 +23,39 @@ public class Exblade extends PlayerData {
     private static final ItemStack[] SWORDS;
 
     static {
-        try {
-            GameInventory inv = KitBattle.inst().getInv("Blades");
-            SWORDS = new ItemStack[]{
-                    inv.getHotbar(0),
-                    inv.getHotbar(1),
-                    inv.getHotbar(2),
-                    inv.getHotbar(3)
-            };
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize SWORDS array", e);
+        GameInventory inv = KitBattle.inst().getInv("Blades");
+        if (inv == null) {
+            throw new RuntimeException("Failed to load inventory: Blades is null!");
+        }
+
+        SWORDS = new ItemStack[]{
+                inv.getHotbar(0),
+                inv.getHotbar(1),
+                inv.getHotbar(2),
+                inv.getHotbar(3)
+        };
+
+        for (int i = 0; i < SWORDS.length; i++) {
+            if (SWORDS[i] == null) {
+                throw new RuntimeException("Failed to load sword at index " + i);
+            }
         }
     }
 
     public Exblade(Player p) {
         super(p);
-        try {
-            this.inventory = KitBattle.inst().getInv("Blades");
-            this.BREACH = inventory.getHotbar(0);
-            this.SHARPNESS = inventory.getHotbar(1);
-            this.FIRE = inventory.getHotbar(2);
-            this.POISON = inventory.getHotbar(3);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize inventory", e);
-        }
     }
 
-
-    
-
-    @Override
-    public void castSkill(Player p) {
-        ItemStack[] contents = p.getInventory().getContents();
+    public boolean castSkill(Player p) {
         boolean hasSword = false;
-
-        for (int i = 0; i < contents.length; i++) {
-            if (contents[i] != null && isSword(contents[i].getType())) {
-                contents[i] = getRandomSword();
+        for (int i = 0; i < p.getInventory().getSize(); i++) {
+            ItemStack item = p.getInventory().getItem(i);
+            if (item != null && isSword(item.getType())) {
+                p.getInventory().setItem(i, getRandomSword());
                 hasSword = true;
             }
         }
-
-        if (hasSword) {
-            p.getInventory().setContents(contents);
-        }
+        return hasSword;
     }
 
     private boolean isSword(Material material) {
