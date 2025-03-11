@@ -1,5 +1,6 @@
 package fun.kaituo.kitbattle.kit;
 
+import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
@@ -44,35 +45,24 @@ public class Blueblood extends PlayerData {
     }
 
     public boolean castSkill(Player p) {
-        Set<Player> affectedPlayers = new HashSet<>();
-        if (affectedPlayers.isEmpty()) {
-            return false;
-        }
+        Set<Player> enemies = KitBattle.inst().getNearbyEnemies(p, RADIUS);
         double totalHealAmount = 0;
         int enemyCount = 0;
-
+        if (enemies.isEmpty()) {
+            return false;
+        }
         // 查找技能范围内的敌人
-        for (Entity entity : p.getNearbyEntities(RADIUS, RADIUS, RADIUS)) {
-            if (entity instanceof Player) {
-                Player target = (Player) entity;
-                if (target != p && !affectedPlayers.contains(target)) {
+        for (Player target : enemies) {
                     // 造成伤害
                     target.damage(4.0); // 可以调整伤害数值
-                    affectedPlayers.add(target);
                     enemyCount++;
                     spawnBloodEffect(target, p);
-                }
-            }
-        }
 
-        // 根据命中敌人的数量恢复生命
-        if (enemyCount > 0) {
-            double lostHealth = p.getMaxHealth() - p.getHealth();
-            double healAmount = SKILL_HEAL_PERCENTAGE * enemyCount * lostHealth;
-            double newHealth = Math.min(p.getHealth() + healAmount, p.getMaxHealth());
-            p.setHealth(newHealth);
         }
-
+        double lostHealth = p.getMaxHealth() - p.getHealth();
+        double healAmount = SKILL_HEAL_PERCENTAGE * enemyCount * lostHealth;
+        double newHealth = Math.min(p.getHealth() + healAmount, p.getMaxHealth());
+        p.setHealth(newHealth);
         // 为玩家提供生命回复效果
         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, false, false));
         return  true;

@@ -194,3 +194,4 @@ public abstract class PlayerData implements Listener  {
         return KitBattle.inst().getConfig().getDouble(getConfigPrefix() + key);
     }
 }
+
