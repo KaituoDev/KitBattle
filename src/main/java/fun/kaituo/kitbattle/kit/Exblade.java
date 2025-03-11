@@ -24,22 +24,12 @@ public class Exblade extends PlayerData {
 
     static {
         GameInventory inv = KitBattle.inst().getInv("Blades");
-        if (inv == null) {
-            throw new RuntimeException("Failed to load inventory: Blades is null!");
-        }
-
         SWORDS = new ItemStack[]{
                 inv.getHotbar(0),
                 inv.getHotbar(1),
                 inv.getHotbar(2),
                 inv.getHotbar(3)
         };
-
-        for (int i = 0; i < SWORDS.length; i++) {
-            if (SWORDS[i] == null) {
-                throw new RuntimeException("Failed to load sword at index " + i);
-            }
-        }
     }
 
     public Exblade(Player p) {
@@ -47,15 +37,23 @@ public class Exblade extends PlayerData {
     }
 
     public boolean castSkill(Player p) {
+        ItemStack[] contents = p.getInventory().getContents();  // 获取玩家背包中的所有物品
         boolean hasSword = false;
-        for (int i = 0; i < p.getInventory().getSize(); i++) {
-            ItemStack item = p.getInventory().getItem(i);
+
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            // 如果该物品是剑，进行替换
             if (item != null && isSword(item.getType())) {
-                p.getInventory().setItem(i, getRandomSword());
+                contents[i] = getRandomSword();  // 替换为随机的剑
                 hasSword = true;
             }
         }
-        return hasSword;
+
+        if (hasSword) {
+            p.getInventory().setContents(contents);  // 更新玩家背包
+        }
+
+        return hasSword;  // 返回是否成功替换了至少一把剑
     }
 
     private boolean isSword(Material material) {
@@ -63,6 +61,7 @@ public class Exblade extends PlayerData {
     }
 
     private ItemStack getRandomSword() {
+        // 从四把指定的剑中随机选择一把
         return SWORDS[ThreadLocalRandom.current().nextInt(SWORDS.length)].clone();
     }
 }
