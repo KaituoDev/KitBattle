@@ -24,7 +24,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -222,7 +221,6 @@ public class KitBattle extends Game implements Listener {
 
     private void initScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        assert manager != null;
         mainBoard = manager.getMainScoreboard();
         kitBattleBoard = manager.getNewScoreboard();
         killsObjective = kitBattleBoard.registerNewObjective("kills", Criteria.DUMMY, "击败榜");
@@ -314,13 +312,6 @@ public class KitBattle extends Game implements Listener {
         } else {
             Class<? extends PlayerData> kitClass = data.getClass();
             Bukkit.getScheduler().runTaskLater(this, () -> toArena(p, kitClass), 1);
-        }
-    }
-
-    @EventHandler
-    public void preventDropItem(PlayerDropItemEvent e) {
-        if (playerIds.contains(e.getPlayer().getUniqueId())) {
-            e.setCancelled(true);
         }
     }
 
