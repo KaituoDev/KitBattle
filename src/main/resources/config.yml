@@ -73,3 +73,5 @@ kits-config:
     radius: 10
     heal-percentage: 0.4
     skill-heal-percentage: 0.1
+  Exblade:
+    cd: 100
