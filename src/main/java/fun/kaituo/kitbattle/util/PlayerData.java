@@ -193,6 +193,4 @@ public abstract class PlayerData implements Listener  {
     public double getConfigDouble(String key) {
         return KitBattle.inst().getConfig().getDouble(getConfigPrefix() + key);
     }
-
-    public abstract void castSkill(Player p);
 }
