@@ -58,9 +58,8 @@ public class Birth extends PlayerData implements Listener {
                 p.getInventory().setItem(i, KitBattle.inst().getInv("Rebirth").getHotbar(1) );
             }
         }
-
-
     }
+
     @EventHandler
     public void onPlayerConsume(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
@@ -87,6 +86,4 @@ public class Birth extends PlayerData implements Listener {
             }
         }
     }
-
-
 }

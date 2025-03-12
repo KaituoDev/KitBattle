@@ -2,9 +2,8 @@ package fun.kaituo.kitbattle.kit;
 
 import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
-import org.bukkit.Bukkit;
 import org.bukkit.Particle;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -13,7 +12,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static fun.kaituo.kitbattle.KitBattle.PARTICLE_COUNT;
@@ -22,6 +20,7 @@ public class Blueblood extends PlayerData {
     private final double HEAL_PERCENTAGE;
     private final double SKILL_HEAL_PERCENTAGE;
     private final double RADIUS;
+    private final double MAX_HEALTH = 40.0;
 
     public Blueblood(Player p) {
         super(p);
@@ -32,7 +31,7 @@ public class Blueblood extends PlayerData {
 
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player)) {
+        if (!event.getDamager().getType().equals(EntityType.PLAYER) || !(event.getDamager() instanceof Player)) {
             return;
         }
         Player damager = (Player) event.getDamager();
@@ -40,13 +39,13 @@ public class Blueblood extends PlayerData {
             return;
         }
         double healAmount = event.getDamage() * HEAL_PERCENTAGE;
-        double newHealth = Math.min(damager.getHealth() + healAmount, damager.getMaxHealth());
+        double newHealth = Math.min(damager.getHealth() + healAmount, MAX_HEALTH);
         damager.setHealth(newHealth);
     }
 
-    public boolean castSkill(Player p) {
+    @Override
+    public boolean castSkill() {
         Set<Player> enemies = KitBattle.inst().getNearbyEnemies(p, RADIUS);
-        double totalHealAmount = 0;
         int enemyCount = 0;
         if (enemies.isEmpty()) {
             return false;
@@ -59,21 +58,22 @@ public class Blueblood extends PlayerData {
                     spawnBloodEffect(target, p);
 
         }
-        double lostHealth = p.getMaxHealth() - p.getHealth();
+        double lostHealth = MAX_HEALTH - p.getHealth();
         double healAmount = SKILL_HEAL_PERCENTAGE * enemyCount * lostHealth;
-        double newHealth = Math.min(p.getHealth() + healAmount, p.getMaxHealth());
+        double newHealth = Math.min(p.getHealth() + healAmount, MAX_HEALTH);
         p.setHealth(newHealth);
         // 为玩家提供生命回复效果
         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, false, false));
-        return  true;
+        return true;
     }
+
     private void spawnBloodEffect(Player target, Player caster) {
         Vector direction = caster.getLocation().toVector().subtract(target.getLocation().toVector()).normalize();
         new BukkitRunnable() {
             int steps = 0;
-            Vector particleLocation = target.getLocation().toVector();
-            double totalDistance = particleLocation.distance(caster.getLocation().toVector()); // 修复：使用 Vector 计算距离
-            double stepDistance = totalDistance / PARTICLE_COUNT;
+            final Vector particleLocation = target.getLocation().toVector();
+            final double totalDistance = particleLocation.distance(caster.getLocation().toVector()); // 修复：使用 Vector 计算距离
+            final double stepDistance = totalDistance / PARTICLE_COUNT;
 
             @Override
             public void run() {
@@ -91,6 +91,6 @@ public class Blueblood extends PlayerData {
 
                 steps++;
             }
-        }.runTaskTimer(Bukkit.getPluginManager().getPlugin("KitBattle"), 0, 1);
+        }.runTaskTimer(KitBattle.inst(), 0, 1);
     }
 }
