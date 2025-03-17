@@ -1,4 +1,4 @@
-cooldown-reduction-multiplier: 0.8
+cooldown-reduction-multiplier: 0.6
 kits-config:
   BladeMaster:
     cd: 200
@@ -72,6 +72,8 @@ kits-config:
     cd: 500
     radius: 10
     heal-percentage: 0.4
-    skill-heal-percentage: 0.1
+    skill-heal-percentage: 0.35
   Exblade:
+    cd: 100
+  Parasites:
     cd: 100
