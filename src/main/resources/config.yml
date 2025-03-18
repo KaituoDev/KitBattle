@@ -77,3 +77,7 @@ kits-config:
     cd: 100
   Parasites:
     cd: 100
+    slowness-duration: 40
+    slowness-amplifier: 0
+    blindness-duration: 20
+    blindness-amplifier: 0
