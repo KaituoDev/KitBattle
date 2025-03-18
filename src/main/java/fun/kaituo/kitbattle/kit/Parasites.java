@@ -38,7 +38,7 @@ public class Parasites extends PlayerData implements Listener {
 
     @Override
     public void onDestroy() {
-        clearSummonedEntities();
+        super.onDestroy();
         if (aiTask != null && !aiTask.isCancelled()) {
             aiTask.cancel();
         }
@@ -59,13 +59,16 @@ public class Parasites extends PlayerData implements Listener {
     }
 
     public boolean castSkill() {
-        Location location = p.getLocation();
+        // 先清除上一波召唤物，并取消旧的清除任务
+        clearSummonedEntities();
+        // 检查并取消清除任务
+        if (cleanupTask != null && !cleanupTask.isCancelled()) {
+            cleanupTask.cancel();
+        }
+
         if (aiTask != null && !aiTask.isCancelled()) {
             aiTask.cancel();
         }
-
-        // 先清除上一波召唤物，并取消旧的清除任务
-        clearSummonedEntities();
 
         int numSummons = 7;  // 生成3到5个召唤物
         for (int i = 0; i < numSummons; i++) {
@@ -87,11 +90,6 @@ public class Parasites extends PlayerData implements Listener {
                 bug.setMetadata("ownerUUID", new FixedMetadataValue(KitBattle.inst(), ownerUUID.toString()));
                 summonedEntities.add(bug);
             }, i * 3L); // 每个召唤物间隔5 ticks生成
-        }
-
-        // 取消旧的清除任务，防止上一波的定时器仍在运行
-        if (cleanupTask != null && !cleanupTask.isCancelled()) {
-            cleanupTask.cancel();
         }
 
         // 启动新的清除任务
@@ -133,8 +131,7 @@ public class Parasites extends PlayerData implements Listener {
         }
 
         for (Entity entity : summonedEntities) {
-            if (entity instanceof Mob) {
-                Mob mob = (Mob) entity;
+            if (entity instanceof Mob mob) {
                 if (owner.isDead()) {
                     // 玩家死亡，召唤物攻击任何附近的生物（除了友方召唤物）
                     setWildAI(mob);
@@ -155,8 +152,7 @@ public class Parasites extends PlayerData implements Listener {
                     continue; // 跳过友方召唤物
                 }
 
-                if (nearbyEntity instanceof Player) {
-                    Player targetPlayer = (Player) nearbyEntity;
+                if (nearbyEntity instanceof Player targetPlayer) {
                     if (KitBattle.inst().isInArena(targetPlayer)) {
                         mob.setTarget((LivingEntity) nearbyEntity);
                         break;
@@ -194,12 +190,6 @@ public class Parasites extends PlayerData implements Listener {
     }
 
     private void clearSummonedEntities() {
-        // 先检查并取消清除任务
-        if (cleanupTask != null) {
-            cleanupTask.cancel();
-            cleanupTask = null;
-        }
-
         // 清除召唤物
         for (Entity entity : summonedEntities) {
             if (entity != null && !entity.isDead()) {
