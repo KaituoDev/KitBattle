@@ -21,7 +21,7 @@ public class Musketeer extends PlayerData {
     private static final int MAX_DISTANCE = 200;     // 最大检测距离
     private static final int DAMAGE_DISTANCE_THRESHOLD = 30; // 伤害衰减阈值
     private static final int COOLDOWN_TICKS = 50;
-    private static final double SIDE_OFFSET = 0.2;  // 平行射线的左右偏移量
+    private static final double SIDE_OFFSET = 0.5;  // 平行射线的左右偏移量
 
     public Musketeer(Player p) {
         super(p);
@@ -52,7 +52,12 @@ public class Musketeer extends PlayerData {
 
         // **计算主射线方向**
         Vector direction = p.getEyeLocation().getDirection().normalize();
-        Vector start = p.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让子弹从玩家视线前方一点点发射
+        Vector start = p.getEyeLocation().toVector().add(direction.clone().multiply(1.5)); // 让子弹从玩家视线前方一点点发射
+
+        // **计算左右射线偏移**
+        Vector sideDirection = direction.clone().crossProduct(new Vector(0, 1, 0)).normalize().multiply(SIDE_OFFSET);
+        Vector leftStart = start.clone().add(sideDirection);
+        Vector rightStart = start.clone().subtract(sideDirection);
 
         // **计算最大射程终点**
         Vector end = start.clone().add(direction.clone().multiply(MAX_DISTANCE));
@@ -64,29 +69,31 @@ public class Musketeer extends PlayerData {
         }
 
         // **检测实体碰撞**
-        RayTraceResult entityHit = p.getWorld().rayTraceEntities(
-                p.getEyeLocation(),
-                direction,
-                MAX_DISTANCE,
-                entity -> entity instanceof LivingEntity && !entity.equals(p)
-        );
+        for (Vector startPoint : new Vector[]{start, leftStart, rightStart}) {
+            RayTraceResult entityHit = p.getWorld().rayTraceEntities(
+                    startPoint.toLocation(p.getWorld()),
+                    direction,
+                    MAX_DISTANCE,
+                    entity -> entity instanceof LivingEntity && !entity.equals(p)
+            );
 
-        if (entityHit != null && entityHit.getHitEntity() instanceof LivingEntity) {
-            LivingEntity target = (LivingEntity) entityHit.getHitEntity();
-            Vector entityPosition = target.getLocation().toVector().add(new Vector(0, target.getHeight() / 2, 0)); // 瞄准目标中心
+            if (entityHit != null && entityHit.getHitEntity() instanceof LivingEntity) {
+                LivingEntity target = (LivingEntity) entityHit.getHitEntity();
+                Vector entityPosition = target.getLocation().toVector().add(new Vector(0, target.getHeight() / 2, 0)); // 瞄准目标中心
 
-            // **如果生物比方块更近，则优先命中生物**
-            if (blockHit == null || start.distance(entityPosition) < start.distance(end)) {
-                // **计算命中点，使其与射线方向一致**
-                double hitDistance = start.distance(entityPosition);
-                end = start.clone().add(direction.clone().multiply(hitDistance)); // 保持射线方向不变
+                // **如果生物比方块更近，则优先命中生物**
+                if (blockHit == null || startPoint.distance(entityPosition) < startPoint.distance(end)) {
+                    // **计算命中点，使其与射线方向一致**
+                    double hitDistance = startPoint.distance(entityPosition);
+                    end = start.clone().add(direction.clone().multiply(hitDistance)); // 保持射线方向不变
 
-                double damage = (hitDistance <= DAMAGE_DISTANCE_THRESHOLD) ? DAMAGE_CLOSE : DAMAGE_FAR;
-                target.damage(damage, p);
+                    double damage = (hitDistance <= DAMAGE_DISTANCE_THRESHOLD) ? DAMAGE_CLOSE : DAMAGE_FAR;
+                    target.damage(damage, p);
+                }
             }
         }
 
-        // **生成子弹轨迹**
+        // **生成主射线的子弹轨迹**
         spawnBulletParticles(p, start, end);
 
         // **设置冷却 UI**
@@ -94,7 +101,7 @@ public class Musketeer extends PlayerData {
     }
 
     /**
-     * 生成子弹粒子轨迹（始终保持视线方向，命中目标或方块时停止）
+     * 生成子弹粒子轨迹（仅主射线，始终保持视线方向）
      */
     private void spawnBulletParticles(Player shooter, Vector start, Vector end) {
         Vector direction = end.clone().subtract(start).normalize().multiply(0.5); // 每 0.5 格一个粒子
