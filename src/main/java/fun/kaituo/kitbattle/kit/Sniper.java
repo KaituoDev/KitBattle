@@ -41,10 +41,10 @@ public class Sniper extends PlayerData {
 
     @EventHandler
     public void onUseTelescope(PlayerInteractEvent event) {
-        Player p = event.getPlayer();
+        Player player = event.getPlayer();
 
         // 确保事件只处理当前玩家的行为
-        if (!p.equals(p.getPlayer())) {
+        if (!player.equals(p.getPlayer())) {
             return;
         }
 
@@ -55,49 +55,49 @@ public class Sniper extends PlayerData {
         }
 
         // 检查物品冷却
-        if (p.hasCooldown(Material.SPYGLASS)) {
+        if (player.hasCooldown(Material.SPYGLASS)) {
             return;
         }
 
         // 左键发射不精确射线
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            shootImpreciseRay(p);
-            p.setCooldown(Material.SPYGLASS, COOLDOWN_TICKS);
+            shootImpreciseRay(player);
+            player.setCooldown(Material.SPYGLASS, COOLDOWN_TICKS);
         }
 
         // 右键进入狙击模式
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             isSniperMode = true;
-            p.sendMessage("§a进入狙击模式");
+            player.sendMessage("§a进入狙击模式");
             // 添加缓慢 III 效果
-            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 2, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 2, false, false));
         }
     }
 
     @EventHandler
     public void onReleaseRightClick(PlayerItemHeldEvent event) {
-        Player p = event.getPlayer();
+        Player player = event.getPlayer();
 
         // 确保事件只处理当前玩家的行为
-        if (!p.equals(p.getPlayer())) {
+        if (!player.equals(p.getPlayer())) {
             return;
         }
 
         // 检查是否处于狙击模式
         if (isSniperMode) {
             isSniperMode = false;
-            shootPreciseRay(p);
-            p.sendMessage("§c退出狙击模式");
-            p.setCooldown(Material.SPYGLASS, COOLDOWN_TICKS);
+            shootPreciseRay(player);
+            player.sendMessage("§c退出狙击模式");
+            player.setCooldown(Material.SPYGLASS, COOLDOWN_TICKS);
             // 移除缓慢 III 效果
-            p.removePotionEffect(PotionEffectType.SLOWNESS);
+            player.removePotionEffect(PotionEffectType.SLOWNESS);
         }
     }
 
-    private void shootImpreciseRay(Player p) {
+    private void shootImpreciseRay(Player player) {
         // 计算主射线方向
-        Vector direction = p.getEyeLocation().getDirection().normalize();
-        Vector start = p.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
+        Vector direction = player.getEyeLocation().getDirection().normalize();
+        Vector start = player.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
 
         // 添加随机偏移量以模拟不精确
         Vector spread = new Vector(
@@ -111,14 +111,14 @@ public class Sniper extends PlayerData {
         Vector end = start.clone().add(direction.clone().multiply(MAX_DISTANCE));
 
         // 检测方块碰撞
-        RayTraceResult blockHit = p.getWorld().rayTraceBlocks(p.getEyeLocation(), direction, MAX_DISTANCE);
+        RayTraceResult blockHit = player.getWorld().rayTraceBlocks(player.getEyeLocation(), direction, MAX_DISTANCE);
         if (blockHit != null) {
             end = blockHit.getHitPosition(); // 确保射线停止在方块前
         }
 
         // 检测实体碰撞
-        RayTraceResult entityHit = p.getWorld().rayTraceEntities(
-                p.getEyeLocation(),
+        RayTraceResult entityHit = player.getWorld().rayTraceEntities(
+                player.getEyeLocation(),
                 direction,
                 MAX_DISTANCE,
                 entity -> entity instanceof LivingEntity && !entity.equals(p)
@@ -126,23 +126,23 @@ public class Sniper extends PlayerData {
 
         if (entityHit != null && entityHit.getHitEntity() instanceof LivingEntity) {
             LivingEntity target = (LivingEntity) entityHit.getHitEntity();
-            target.damage(DAMAGE_IMPRECISE, p);
+            target.damage(DAMAGE_IMPRECISE, player);
         }
 
         // 生成射线粒子轨迹
-        spawnRayParticles(p, start, end, Particle.CRIT);
-        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.0f);
+        spawnRayParticles(player, start, end, Particle.CRIT);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.0f);
     }
 
-    private void shootPreciseRay(Player p) {
-        Vector direction = p.getEyeLocation().getDirection().normalize();
-        Vector start = p.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
+    private void shootPreciseRay(Player player) {
+        Vector direction = player.getEyeLocation().getDirection().normalize();
+        Vector start = player.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
 
         // 发射三道平行射线
-        shootParallelRays(p, start, direction, DAMAGE_PRECISE);
+        shootParallelRays(player, start, direction, DAMAGE_PRECISE);
 
         // 播放音效
-        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.5f);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.5f);
     }
 
     private void spawnRayParticles(Player shooter, Vector start, Vector end, Particle particle) {
@@ -158,46 +158,46 @@ public class Sniper extends PlayerData {
     /**
      * 发射三道平行射线，任意一条命中即为命中目标
      */
-    private void shootParallelRays(Player p, Vector start, Vector direction, double damage) {
+    private void shootParallelRays(Player player, Vector start, Vector direction, double damage) {
         // 计算左右偏移量
         Vector rightOffset = new Vector(-direction.getZ(), 0, direction.getX()).normalize().multiply(SIDE_OFFSET);
         Vector leftOffset = rightOffset.clone().multiply(-1);
 
         // 发射中间射线并生成粒子特效
-        shootSingleRay(p, start, direction, damage);
-        spawnRayParticles(p, start, start.clone().add(direction.clone().multiply(MAX_DISTANCE)), Particle.CRIT);
+        shootSingleRay(player, start, direction, damage);
+        spawnRayParticles(player, start, start.clone().add(direction.clone().multiply(MAX_DISTANCE)), Particle.CRIT);
 
         // 发射右侧射线
-        shootSingleRay(p, start.clone().add(rightOffset), direction, damage);
+        shootSingleRay(player, start.clone().add(rightOffset), direction, damage);
 
         // 发射左侧射线
-        shootSingleRay(p, start.clone().add(leftOffset), direction, damage);
+        shootSingleRay(player, start.clone().add(leftOffset), direction, damage);
     }
 
     /**
      * 发射单条射线并检测命中
      */
-    private void shootSingleRay(Player p, Vector start, Vector direction, double damage) {
+    private void shootSingleRay(Player player, Vector start, Vector direction, double damage) {
         // 计算最大射程终点
         Vector end = start.clone().add(direction.clone().multiply(MAX_DISTANCE));
 
         // 检测方块碰撞
-        RayTraceResult blockHit = p.getWorld().rayTraceBlocks(start.toLocation(p.getWorld()), direction, MAX_DISTANCE);
+        RayTraceResult blockHit = player.getWorld().rayTraceBlocks(start.toLocation(player.getWorld()), direction, MAX_DISTANCE);
         if (blockHit != null) {
             end = blockHit.getHitPosition(); // 确保射线停止在方块前
         }
 
         // 检测实体碰撞
-        RayTraceResult entityHit = p.getWorld().rayTraceEntities(
-                start.toLocation(p.getWorld()),
+        RayTraceResult entityHit = player.getWorld().rayTraceEntities(
+                start.toLocation(player.getWorld()),
                 direction,
                 MAX_DISTANCE,
-                entity -> entity instanceof LivingEntity && !entity.equals(p)
+                entity -> entity instanceof LivingEntity && !entity.equals(player)
         );
 
         if (entityHit != null && entityHit.getHitEntity() instanceof LivingEntity) {
             LivingEntity target = (LivingEntity) entityHit.getHitEntity();
-            target.damage(damage, p);
+            target.damage(damage, player);
         }
     }
 }
