@@ -81,3 +81,5 @@ kits-config:
     slowness-amplifier: 0
     blindness-duration: 20
     blindness-amplifier: 0
+  KonpakuYoumu:
+    cd: 1200
