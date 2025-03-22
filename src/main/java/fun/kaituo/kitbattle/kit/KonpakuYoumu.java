@@ -4,10 +4,7 @@ import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -47,6 +44,11 @@ public class KonpakuYoumu extends PlayerData implements Listener {
 
         super(p);
         KitBattle.inst().getServer().getPluginManager().registerEvents(this, KitBattle.inst());
+        p.setCooldown(Material.PINK_PETALS, 0);
+        p.setCooldown(Material.PINK_DYE, 0);
+        p.setCooldown(Material.POPPED_CHORUS_FRUIT, 0);
+        p.setCooldown(Material.STONE_SWORD, 0);
+
     }
 
     @Override
@@ -79,7 +81,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         // 获取圆柱体内的所有LivingEntity
         Set<LivingEntity> entities = getEntitiesInCylinder(targetBlock, RADIUS, HEIGHT);
         for (LivingEntity enemy : entities) {
-            if (enemy.isDead() || !enemy.isValid() || enemy instanceof ArmorStand) continue;
+            if (enemy.isDead() || !enemy.isValid() || enemy instanceof ArmorStand || enemy instanceof Pig) continue;
             enemy.teleport(enemy.getLocation().add(0, 3, 0));
         }
 
@@ -304,6 +306,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
     public void Q(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
+
 
         // 检查玩家手持的物品是否为樱花簇且包含“剑技”字符
         if (item != null && item.getType() == Material.PINK_PETALS) { // 确保物品类型正确
@@ -595,13 +598,16 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         World world = player.getWorld();
         Location start = player.getEyeLocation();
 
+        // 调整起点位置，使其从玩家前方一定距离开始（例如2格）
+        Location adjustedStart = start.clone().add(direction.clone().multiply(2)); // 从玩家前方2格开始
+
         // 发射三道射线
-        LivingEntity hitEntity = shootRay(world, start, direction);
+        LivingEntity hitEntity = shootRay(world, adjustedStart, direction);
         if (hitEntity == null) {
-            hitEntity = shootRay(world, start, rightDirection);
+            hitEntity = shootRay(world, adjustedStart, rightDirection);
         }
         if (hitEntity == null) {
-            hitEntity = shootRay(world, start, leftDirection);
+            hitEntity = shootRay(world, adjustedStart, leftDirection);
         }
 
         return hitEntity;
@@ -681,6 +687,139 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         for (double t = 0; t <= distance; t += stepSize) {
             Location particleLocation = start.clone().add(direction.clone().multiply(t));
             world.spawnParticle(Particle.FIREWORK, particleLocation, 1, 0, 0, 0, 0.01);
+        }
+    }
+
+
+
+    /**
+     * 发射剑气
+     *
+     * @param player 玩家
+     * @param start  起点
+     * @param end    终点
+     */
+    @EventHandler
+    public void A(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+        ItemStack offHandItem = player.getInventory().getItemInOffHand();
+
+        // 检查主手是否为含有“楼观剑”的铁剑，副手是否为含有“白楼剑”的石剑
+        if (mainHandItem != null && mainHandItem.getType() == Material.IRON_SWORD &&
+                offHandItem != null && offHandItem.getType() == Material.STONE_SWORD) {
+            ItemMeta mainHandMeta = mainHandItem.getItemMeta();
+            ItemMeta offHandMeta = offHandItem.getItemMeta();
+
+            if (mainHandMeta != null && mainHandMeta.getDisplayName().contains("楼观剑") &&
+                    offHandMeta != null && offHandMeta.getDisplayName().contains("白楼剑")) {
+
+                // 检查副手石剑是否处于冷却状态
+                if (player.hasCooldown(Material.STONE_SWORD)) {
+                    return;
+                }
+
+                // 获取玩家视线方向（水平方向）
+                Vector direction = player.getEyeLocation().getDirection().normalize();
+                direction.setY(0); // 将Y轴分量设为0，确保剑气水平射出
+
+                // 计算起点和终点
+                Location start = player.getLocation().add(0, 1, 0); // 从玩家腰部高度开始
+                Location end = start.clone().add(direction.multiply(15)); // 最大距离为15格
+
+                // 发射剑气
+                launchSwordWave(player, start, end);
+
+                // 设置副手石剑的冷却时间为10秒（200 ticks）
+                player.setCooldown(Material.STONE_SWORD, 200);
+            }
+        }
+    }
+
+    /**
+     * 发射剑气
+     *
+     * @param player 玩家
+     * @param start  起点
+     * @param end    终点
+     */
+    private void launchSwordWave(Player player, Location start, Location end) {
+        World world = start.getWorld();
+        if (world == null) return;
+
+        // 计算剑气的移动方向
+        Vector direction = end.toVector().subtract(start.toVector()).normalize();
+        double distance = start.distance(end);
+
+        // 创建一个BukkitRunnable来移动剑气
+        new BukkitRunnable() {
+            double progress = 0; // 当前进度
+            final double speed = 1; // 移动速度（每tick移动的格数）
+
+            @Override
+            public void run() {
+                if (progress >= distance) {
+                    this.cancel(); // 到达终点后取消任务
+                    return;
+                }
+
+                // 计算当前剑气的位置
+                Location currentLocation = start.clone().add(direction.clone().multiply(progress));
+
+                // 生成剑气粒子特效
+                generateSwordWaveParticles(currentLocation, world);
+
+                // 对当前剑气位置的实体造成伤害
+                for (Entity entity : world.getNearbyEntities(currentLocation, 1.0, 1.0, 1.0)) {
+                    if (entity instanceof LivingEntity && !entity.equals(player)) {
+                        ((LivingEntity) entity).damage(4.0, player); // 造成4点伤害
+                    }
+                }
+
+                // 更新进度
+                progress += speed;
+            }
+        }.runTaskTimer(KitBattle.inst(), 0, 1); // 每tick执行一次
+    }
+
+    /**
+     * 生成剑气粒子特效
+     *
+     * @param center 剑气中心点
+     * @param world  世界
+     */
+    private void generateSwordWaveParticles(Location center, World world) {
+        // 生成一条直线上的粒子特效
+        world.spawnParticle(Particle.SWEEP_ATTACK, center, 5, 0.1, 0.1, 0.1, 0); // 生成5个SWEEP_ATTACK粒子
+        world.spawnParticle(Particle.CRIT, center, 3, 0.1, 0.1, 0.1, 0.1); // 生成3个CRIT粒子
+    }
+
+    @EventHandler
+    public void coolDown(EntityDamageByEntityEvent event) {
+        // 检查是否是玩家使用横扫攻击
+        if (event.getDamager() instanceof Player) {
+            Player player = (Player) event.getDamager();
+            ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+
+            // 检查主手是否为含有“楼观剑”的铁剑
+            if (mainHandItem != null && mainHandItem.getType() == Material.IRON_SWORD) {
+                ItemMeta mainHandMeta = mainHandItem.getItemMeta();
+                if (mainHandMeta != null && mainHandMeta.getDisplayName().contains("楼观剑")) {
+
+                    // 检查副手石剑是否处于冷却状态
+                    if (player.hasCooldown(Material.STONE_SWORD)) {
+                        // 获取当前剩余的冷却时间
+                        int remainingCooldown = player.getCooldown(Material.STONE_SWORD);
+
+                        // 减少冷却时间1秒（5 ticks）
+                        if (remainingCooldown > 5) {
+                            player.setCooldown(Material.STONE_SWORD, remainingCooldown - 5);
+                        } else {
+                            player.setCooldown(Material.STONE_SWORD, 0); // 冷却时间清零
+                        }
+                    }
+                }
+            }
         }
     }
 }
