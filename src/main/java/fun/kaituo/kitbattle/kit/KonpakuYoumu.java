@@ -4,6 +4,7 @@ import fun.kaituo.kitbattle.KitBattle;
 import fun.kaituo.kitbattle.util.PlayerData;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
     private static final int HEIGHT = 5; // 圆柱体高度
     private static final double UPWARD_FORCE = 0.15; // 向上的动能
 
-    private static final int COOL_DOWN_TICKS = 240;
+    private static final int COOL_DOWN_TICKS = 600;
 
     private BukkitRunnable skillTask;
     private Set<UUID> affectedEntities = new HashSet<>();
@@ -78,7 +79,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         // 获取圆柱体内的所有LivingEntity
         Set<LivingEntity> entities = getEntitiesInCylinder(targetBlock, RADIUS, HEIGHT);
         for (LivingEntity enemy : entities) {
-            if (enemy.isDead() || !enemy.isValid()) continue;
+            if (enemy.isDead() || !enemy.isValid() || enemy instanceof ArmorStand) continue;
             enemy.teleport(enemy.getLocation().add(0, 3, 0));
         }
 
@@ -108,7 +109,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                 generateCherryBlossomParticles(effectCenter);
 
                 for (LivingEntity entity : entities) {
-                    if (entity.isDead() || !entity.isValid()) continue;
+                    if (entity.isDead() || !entity.isValid() || entity instanceof ArmorStand) continue;
 
 
                     // 每6 tick造成伤害并给予向上的动能
@@ -253,7 +254,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         }
 
         // 从一端向另一端生成粒子，并沿偏移向量移动
-        for (double t = 0; t <= 1; t += 0.05) {
+        for (double t = 0; t <= 1; t += 0.01) {
             double x = x1 + t * (x2 - x1);
             double y = y1 + t * (y2 - y1);
             double z = z1 + t * (z2 - z1);
@@ -332,16 +333,15 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                     // 没有触及方块，传送玩家到射线末端
                     player.teleport(end);
                 } else {
-                    // 触及方块，传送玩家到第一个触及的方块向射线起点一格距离的位置
-                    Location hitLocation = hitBlock.getLocation().add(direction.multiply(-0.1));
+                    Block targetBlock = player.getTargetBlock(null, 10); // 最大距离为 10 格
+                    if (targetBlock == null) return;
 
-                    // 检查 hitLocation 是否超过了起点位置
-                    if (hitLocation.distanceSquared(start) > start.distanceSquared(hitLocation)) {
-                        // 如果超过了起点位置，则传送玩家回起点
-                        player.teleport(start);
+                    // 获取目标方块的周围安全位置
+                    Location safeLocation = findSafeLocationAroundBlock(targetBlock.getLocation(),player);
+                    if (safeLocation != null) {
+                        // 传送玩家到安全位置
+                        player.teleport(safeLocation);
                     } else {
-                        // 否则，传送玩家到 hitLocation
-                        player.teleport(hitLocation);
                     }
                 }
                 // 对路径上的所有实体造成伤害
@@ -369,6 +369,76 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                 player.setCooldown(Material.PINK_PETALS, COOL_DOWN_TICKS);
             }
         }
+    }
+
+
+
+    /**
+     * 在目标方块周围寻找一个安全位置（排除远离玩家的一侧）
+     *
+     * @param targetLocation 目标方块的坐标
+     * @param player         玩家
+     * @return 安全位置的 Location，如果未找到则返回 null
+     */
+    private Location findSafeLocationAroundBlock(Location targetLocation, Player player) {
+        World world = targetLocation.getWorld();
+        if (world == null) return null;
+
+        // 获取玩家与目标方块的相对方向
+        Vector playerDirection = player.getLocation().toVector().subtract(targetLocation.toVector()).normalize();
+
+        // 优先检测目标方块上方
+        Location aboveLocation = targetLocation.clone().add(0, 1, 0);
+        if (isSafeLocation(aboveLocation)) {
+            return aboveLocation;
+        }
+
+        // 检测四周（东、西、南、北），排除远离玩家的一侧
+        Location[] sideLocations = {
+                targetLocation.clone().add(1, 0, 0), // 东
+                targetLocation.clone().add(-1, 0, 0), // 西
+                targetLocation.clone().add(0, 0, 1), // 南
+                targetLocation.clone().add(0, 0, -1) // 北
+        };
+
+        for (Location side : sideLocations) {
+            // 计算目标方块到侧面的方向向量
+            Vector sideDirection = side.toVector().subtract(targetLocation.toVector()).normalize();
+
+            // 如果侧面方向与玩家方向相反（点积为负），则跳过
+            if (playerDirection.dot(sideDirection) < 0) {
+                continue; // 跳过远离玩家的一侧
+            }
+
+            if (isSafeLocation(side)) {
+                return side;
+            }
+        }
+
+        // 最后检测目标方块下方
+        Location belowLocation = targetLocation.clone().add(0, -1, 0);
+        if (isSafeLocation(belowLocation)) {
+            return belowLocation;
+        }
+
+        // 如果未找到安全位置，返回 null
+        return null;
+    }
+
+    /**
+     * 检查目标位置是否安全（即目标位置及其上方一格是否为空气）
+     *
+     * @param location 目标位置
+     * @return 是否安全
+     */
+    private boolean isSafeLocation(Location location) {
+        World world = location.getWorld();
+        if (world == null) return false;
+
+        // 检查目标位置及其上方一格是否为空气
+        Block targetBlock = world.getBlockAt(location);
+        Block aboveBlock = world.getBlockAt(location.clone().add(0, 1, 0));
+        return targetBlock.getType() == Material.AIR && aboveBlock.getType() == Material.AIR;
     }
 
     // 启动粒子效果任务
@@ -406,7 +476,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                 immuneTasks.put(player.getUniqueId(), immuneTask); // 存储任务
 
                 // 设置物品冷却时间
-                player.setCooldown(Material.PINK_DYE, 480); // 24秒冷却时间
+                player.setCooldown(Material.PINK_DYE, 800); // 40scd
             }
         }
     }
@@ -482,6 +552,135 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         if (particleTask != null) {
             particleTask.cancel(); // 取消任务
             particleTasks.remove(player.getUniqueId()); // 从Map中移除任务
+        }
+    }
+
+
+    @EventHandler
+    public void E(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+
+        // 检查玩家手持的物品是否为POPPED_CHORUS_FRUIT且包含“六道剑”字符
+        if (item != null && item.getType() == Material.POPPED_CHORUS_FRUIT) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && meta.getDisplayName().contains("六道剑")) {
+                // 检查冷却时间
+                if (player.hasCooldown(Material.POPPED_CHORUS_FRUIT)) {
+                    return; // 如果处于冷却时间，则直接返回
+                }
+
+                // 获取玩家视线方向
+                Vector direction = player.getEyeLocation().getDirection().normalize();
+
+                // 计算左右两道平行射线的方向
+                Vector rightDirection = new Vector(-direction.getZ(), 0, direction.getX()).normalize();
+                Vector leftDirection = new Vector(direction.getZ(), 0, -direction.getX()).normalize();
+
+                // 发射三道射线并获取命中的实体
+                LivingEntity hitEntity = shootRays(player, direction, rightDirection, leftDirection);
+
+                if (hitEntity != null) {
+                    // 以命中实体的位置为圆心，对半径5格的平面圆形内的所有实体造成伤害和三秒的缓慢2
+                    affectEntitiesInRadius(hitEntity.getLocation(), 5, player);
+
+                    // 使物品POPPED_CHORUS_FRUIT进入10秒的冷却
+                    player.setCooldown(Material.POPPED_CHORUS_FRUIT, 350); // 15.5秒冷却时间（200 ticks）
+                }
+            }
+        }
+    }
+
+    private LivingEntity shootRays(Player player, Vector direction, Vector rightDirection, Vector leftDirection) {
+        World world = player.getWorld();
+        Location start = player.getEyeLocation();
+
+        // 发射三道射线
+        LivingEntity hitEntity = shootRay(world, start, direction);
+        if (hitEntity == null) {
+            hitEntity = shootRay(world, start, rightDirection);
+        }
+        if (hitEntity == null) {
+            hitEntity = shootRay(world, start, leftDirection);
+        }
+
+        return hitEntity;
+    }
+
+    private LivingEntity shootRay(World world, Location start, Vector direction) {
+        double maxDistance = 10; // 最大射程
+        double stepSize = 0.3; // 每步检测的间隔距离
+
+        Location currentLocation = start.clone();
+        while (currentLocation.distance(start) < maxDistance) {
+            currentLocation.add(direction.clone().multiply(stepSize));
+
+            // 检测当前点的实体
+            for (Entity entity : world.getNearbyEntities(currentLocation, 0.5, 0.5, 0.5)) {
+                if (entity instanceof LivingEntity && !entity.equals(p.getPlayer())) {
+                    return (LivingEntity) entity;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void affectEntitiesInRadius(Location center, double radius, Player player) {
+        World world = center.getWorld();
+        if (world == null) return;
+
+        // 生成五芒星粒子特效
+        generatePentagram(center);
+
+        for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (entity instanceof LivingEntity && !entity.equals(player)) {
+                LivingEntity livingEntity = (LivingEntity) entity;
+
+                // 造成伤害
+                livingEntity.damage(8, player);
+
+                // 给予缓慢2效果，持续3秒（60 ticks）
+                livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
+            }
+        }
+    }
+    private void generatePentagram(Location center) {
+        World world = center.getWorld();
+        if (world == null) return;
+
+        double radius = 7.0; // 五芒星的半径
+        double angleIncrement = 2 * Math.PI / 5; // 五芒星的每个顶点之间的角度增量
+
+        // 五芒星的五个顶点坐标
+        Location[] points = new Location[5];
+        for (int i = 0; i < 5; i++) {
+            double angle = i * angleIncrement;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            double y = center.getY() + 1; // 在 center 的基础上向上偏移1格
+            points[i] = new Location(world, x, y, z);
+        }
+
+        // 连接五芒星的顶点，生成粒子特效
+        for (int i = 0; i < 5; i++) {
+            Location start = points[i];
+            Location end = points[(i + 2) % 5]; // 五芒星的连接方式：跳过两个顶点
+
+            // 在两点之间生成粒子特效
+            generateLineParticles(start, end, world);
+        }
+    }
+
+    private void generateLineParticles(Location start, Location end, World world) {
+        double stepSize = 0.1; // 每步的间隔距离
+        Vector direction = end.toVector().subtract(start.toVector()).normalize();
+        double distance = start.distance(end);
+
+        // 从起点到终点逐段生成粒子
+        for (double t = 0; t <= distance; t += stepSize) {
+            Location particleLocation = start.clone().add(direction.clone().multiply(t));
+            world.spawnParticle(Particle.FIREWORK, particleLocation, 1, 0, 0, 0, 0.01);
         }
     }
 }
