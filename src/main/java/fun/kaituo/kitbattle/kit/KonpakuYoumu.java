@@ -476,6 +476,9 @@ public class KonpakuYoumu extends PlayerData implements Listener {
             if (immunePlayers.containsKey(player.getUniqueId())) {
                 long immuneTime = immunePlayers.get(player.getUniqueId());
                 if (System.currentTimeMillis() <= immuneTime) {
+                    // Store original location
+                    Location originalLocation = player.getLocation().clone();
+
                     // 免疫伤害
                     event.setCancelled(true);
 
@@ -493,13 +496,16 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
-                            if (event.getDamager() instanceof LivingEntity) {
+                            if (event.getDamager() instanceof LivingEntity && ((LivingEntity) event.getDamager()).isValid()) {
                                 LivingEntity damager = (LivingEntity) event.getDamager();
                                 player.teleport(damager.getLocation());
-                                player.setGameMode(GameMode.ADVENTURE);
+                            } else {
+                                // If damager is invalid or not found, return to original location
+                                player.teleport(originalLocation);
                             }
+                            player.setGameMode(GameMode.ADVENTURE);
                         }
-                    }.runTaskLater(KitBattle.inst(), 30); // 1秒后执行
+                    }.runTaskLater(KitBattle.inst(), 30); // 1,5秒后执行 (30 ticks = 1 second)
                 }
 
                 // 移除免疫状态并取消粒子效果任务
@@ -514,9 +520,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                 }
             }
         }
-    }
-
-    // 启动粒子效果任务
+    }    // 启动粒子效果任务
     private void startParticleEffect(Player player) {
         BukkitRunnable particleTask = new BukkitRunnable() {
             @Override
