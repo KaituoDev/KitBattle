@@ -8,6 +8,7 @@ import fun.kaituo.gameutils.GameUtils;
 import fun.kaituo.gameutils.game.Game;
 import fun.kaituo.kitbattle.command.KitBattleGo;
 import fun.kaituo.kitbattle.listener.ChooseKitSign;
+import fun.kaituo.kitbattle.listener.HitIntervalSign;
 import fun.kaituo.kitbattle.listener.InfiniteFirepowerSign;
 import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
 import fun.kaituo.kitbattle.util.PlayerData;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -71,6 +73,7 @@ public class KitBattle extends Game implements Listener {
 
     private InfiniteFirepowerSign infiniteFirepowerSign;
     private RecoverOnKillSign recoverOnKillSign;
+    private HitIntervalSign hitIntervalSign;
     private ItemStack backItem;
     private Scoreboard mainBoard;
     private Scoreboard kitBattleBoard;
@@ -133,8 +136,16 @@ public class KitBattle extends Game implements Listener {
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
+        // 设置无敌帧时间
+        if (hasHitInterval()) {
+            p.setMaximumNoDamageTicks(20); // 1秒无敌帧
+        } else {
+            p.setMaximumNoDamageTicks(0); // 无无敌帧
+        }
+
         p.teleport(getRandomSpawnLoc());
         p.playSound(p, Sound.ITEM_ARMOR_EQUIP_GOLD, SOUND_VOLUME, 1);
+
         PlayerData data;
         try {
             Constructor<? extends PlayerData> constructor = kitClass.getConstructor(Player.class);
@@ -174,6 +185,8 @@ public class KitBattle extends Game implements Listener {
         return recoverOnKillSign.shouldRecoverOnKill();
     }
 
+    public boolean hasHitInterval() {return hitIntervalSign.HitInterval(); }
+
     public double getCooldownReductionMultiplier() {
         return getConfig().getDouble("cooldown-reduction-multiplier");
     }
@@ -198,6 +211,8 @@ public class KitBattle extends Game implements Listener {
         Bukkit.getPluginManager().registerEvents(infiniteFirepowerSign, this);
         recoverOnKillSign = new RecoverOnKillSign(this, getLoc("recover-on-kill-sign"));
         Bukkit.getPluginManager().registerEvents(recoverOnKillSign, this);
+        hitIntervalSign = new HitIntervalSign(this, getLoc("hit-interval-sign"));
+        Bukkit.getPluginManager().registerEvents(hitIntervalSign, this);
     }
 
     private void saveKills() {
@@ -254,6 +269,20 @@ public class KitBattle extends Game implements Listener {
         } catch (Exception e) {
             getLogger().warning("Failed to scan for kit classes");
             throw new RuntimeException(e);
+        }
+    }
+
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player)) return;
+
+        Player player = (Player) e.getEntity();
+        if (!isInArena(player)) return;
+
+        // 如果无敌帧开启，取消伤害
+        if (hasHitInterval() && player.getNoDamageTicks() > 0) {
+            e.setCancelled(true);
         }
     }
 
