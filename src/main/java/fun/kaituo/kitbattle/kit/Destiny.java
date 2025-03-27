@@ -19,19 +19,22 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class Destiny extends PlayerData {
-    private  final int RELOAD_TICKS;
-    private  final int SHOT_COOLDOWN;
-    private  final int SHOTS_PER_CLICK;
-    private  final double RAY_RADIUS;
-    private  final double RAY_DISTANCE;
-    private  final double CLOSE_RANGE_DAMAGE;
-    private  final double FAR_RANGE_DAMAGE;
-    private  final double CLOSE_RANGE_DISTANCE;
+    private final int RELOAD_TICKS;
+    private final int SHOT_COOLDOWN;
+    private final int SHOTS_PER_CLICK;
+    private final double RAY_RADIUS;
+    private final double RAY_DISTANCE;
+    private final double CLOSE_RANGE_DAMAGE;
+    private final double FAR_RANGE_DAMAGE;
+    private final double CLOSE_RANGE_DISTANCE;
+    private final double MAX_SHOT_DEVIATION; // 最大射击偏移角度(弧度)
 
     private boolean isReloading = false;
     private int reloadTaskId = -1;
+    private Random random = new Random();
 
     public Destiny(Player p) {
         super(p);
@@ -43,8 +46,8 @@ public class Destiny extends PlayerData {
         CLOSE_RANGE_DAMAGE = getConfigDouble("close-range-damage");
         FAR_RANGE_DAMAGE = getConfigDouble("far-range-damage");
         CLOSE_RANGE_DISTANCE = getConfigDouble("close-range-distance");
+        MAX_SHOT_DEVIATION = Math.toRadians(getConfigDouble("max-shot-deviation")); // 默认最大偏移2度
     }
-
 
     @EventHandler
     public void onPlayerShoot(PlayerInteractEvent e) {
@@ -84,14 +87,32 @@ public class Destiny extends PlayerData {
                 currentAmmo.setAmount(currentAmmo.getAmount() - 1);
                 p.getInventory().setItem(ammoSlot, currentAmmo);
 
-                // 获取实时视角并发射
+                // 获取实时视角并添加随机偏移后发射
                 Location eyeLoc = p.getEyeLocation();
                 Vector direction = eyeLoc.getDirection().normalize();
+                direction = applyRandomDeviation(direction); // 应用随机偏移
                 fireRay(eyeLoc, direction);
             }, i); // 每次间隔1tick
         }
 
         p.setCooldown(Material.WOLF_ARMOR, SHOT_COOLDOWN);
+    }
+
+    private Vector applyRandomDeviation(Vector originalDirection) {
+        // 生成随机偏移角度
+        double deviationAngle = random.nextDouble() * MAX_SHOT_DEVIATION;
+        double rotationAngle = random.nextDouble() * 2 * Math.PI; // 随机旋转方向
+
+        // 创建一个垂直于原始方向的向量作为旋转轴
+        Vector perpendicular = originalDirection.clone().crossProduct(new Vector(0, 1, 0));
+        if (perpendicular.lengthSquared() < 0.0001) {
+            perpendicular = originalDirection.clone().crossProduct(new Vector(1, 0, 0));
+        }
+        perpendicular.normalize();
+
+        // 应用旋转
+        return originalDirection.clone().rotateAroundAxis(perpendicular, deviationAngle)
+                .rotateAroundAxis(originalDirection, rotationAngle);
     }
 
     private void fireRay(Location startLoc, Vector direction) {
@@ -108,7 +129,8 @@ public class Destiny extends PlayerData {
         Location endPoint;
         if (result != null) {
             if (result.getHitEntity() != null) {
-                endPoint = result.getHitEntity().getLocation();
+                // 使用射线实际命中的位置，而不是实体的脚底位置
+                endPoint = result.getHitPosition().toLocation(p.getWorld());
                 handleHit(startLoc, endPoint, (LivingEntity) result.getHitEntity());
             } else {
                 endPoint = result.getHitPosition().toLocation(p.getWorld());
@@ -118,7 +140,7 @@ public class Destiny extends PlayerData {
         }
 
         displayRay(startLoc, endPoint);
-        p.playSound(startLoc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 0.6f, 1.8f);
+        p.playSound(startLoc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 0.4f, 1.8f);
     }
 
     private void handleHit(Location startLoc, Location hitLoc, LivingEntity target) {
@@ -133,18 +155,18 @@ public class Destiny extends PlayerData {
         double length = path.length();
         path.normalize();
 
-        for (double d = 0; d < length; d += 0.2) {
+        // 更细更小的子弹特效
+        for (double d = 0; d < length; d += 0.3) {
             Location point = start.clone().add(path.clone().multiply(d));
             p.getWorld().spawnParticle(
                     Particle.ELECTRIC_SPARK,
                     point,
                     1,
                     0, 0, 0,
-                    0.05
+                    0.01
             );
         }
     }
-
     private void startReload() {
         if (isReloading) return;
 

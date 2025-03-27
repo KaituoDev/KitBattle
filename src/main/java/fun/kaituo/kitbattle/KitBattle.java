@@ -20,6 +20,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -136,7 +137,8 @@ public class KitBattle extends Game implements Listener {
             p.removePotionEffect(PotionEffectType.RESISTANCE);
             p.removePotionEffect(PotionEffectType.SATURATION);
         }
-        // 设置无敌帧时间
+
+        // 设置玩家的无敌帧时间
         if (hasHitInterval()) {
             p.setMaximumNoDamageTicks(20); // 1秒无敌帧
         } else {
@@ -156,6 +158,31 @@ public class KitBattle extends Game implements Listener {
         }
         playerIdDataMap.put(p.getUniqueId(), data);
     }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent e) {
+        // 处理所有实体的无敌时间
+        if (!hasHitInterval()) {
+            if (e.getEntity() instanceof LivingEntity) {
+                LivingEntity entity = (LivingEntity) e.getEntity();
+                // 强制设置当前无敌时间和最大无敌时间为0
+                entity.setNoDamageTicks(0);
+                entity.setMaximumNoDamageTicks(0);
+            }
+            return;
+        }
+
+        // 仅当HitInterval开启时才处理玩家的无敌时间
+        if (e.getEntity() instanceof Player) {
+            Player player = (Player) e.getEntity();
+            if (!isInArena(player)) return;
+
+            if (player.getNoDamageTicks() > 0) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
 
     public void toHub(Player p) {
         PlayerData originalData = playerIdDataMap.get(p.getUniqueId());
@@ -273,18 +300,6 @@ public class KitBattle extends Game implements Listener {
     }
 
 
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-
-        Player player = (Player) e.getEntity();
-        if (!isInArena(player)) return;
-
-        // 如果无敌帧开启，取消伤害
-        if (hasHitInterval() && player.getNoDamageTicks() > 0) {
-            e.setCancelled(true);
-        }
-    }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
