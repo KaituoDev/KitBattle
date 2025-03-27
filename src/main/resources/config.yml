@@ -88,3 +88,12 @@ kits-config:
     damage: 2.5
     duration: 10
     interval: 4
+  Destiny:
+    reload-ticks: 30
+    shot-cooldown: 4
+    shots-per-click: 4
+    ray-radius: 0.5
+    ray-distance: 30
+    close-range-damage: 5
+    far-range-damage: 2
+    close-range-distance: 15
