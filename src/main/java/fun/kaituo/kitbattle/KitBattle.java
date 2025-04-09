@@ -140,7 +140,7 @@ public class KitBattle extends Game implements Listener {
 
         // 设置玩家的无敌帧时间
         if (hasHitInterval()) {
-            p.setMaximumNoDamageTicks(20); // 1秒无敌帧
+            p.setMaximumNoDamageTicks(10); // 1秒无敌帧
         } else {
             p.setMaximumNoDamageTicks(0); // 无无敌帧
         }

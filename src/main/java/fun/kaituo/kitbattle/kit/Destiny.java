@@ -5,6 +5,7 @@ import fun.kaituo.kitbattle.util.PlayerData;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -131,15 +132,19 @@ public class Destiny extends PlayerData {
             if (result.getHitEntity() != null) {
                 // 使用射线实际命中的位置，而不是实体的脚底位置
                 endPoint = result.getHitPosition().toLocation(p.getWorld());
+                // 先显示射线
+                displayRay(startLoc, endPoint);
+                // 再处理命中效果
                 handleHit(startLoc, endPoint, (LivingEntity) result.getHitEntity());
             } else {
                 endPoint = result.getHitPosition().toLocation(p.getWorld());
+                displayRay(startLoc, endPoint);
             }
         } else {
             endPoint = startLoc.clone().add(direction.multiply(RAY_DISTANCE));
+            displayRay(startLoc, endPoint);
         }
 
-        displayRay(startLoc, endPoint);
         p.playSound(startLoc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 0.4f, 1.8f);
     }
 
@@ -147,7 +152,46 @@ public class Destiny extends PlayerData {
         double distance = startLoc.distance(hitLoc);
         double damage = distance <= CLOSE_RANGE_DISTANCE ? CLOSE_RANGE_DAMAGE : FAR_RANGE_DAMAGE;
 
-        target.damage(damage, p);
+        // 计算护甲减伤后的实际伤害
+        double finalDamage = calculateArmorReduction(target, damage);
+
+        // 直接削减生命值
+        double newHealth = target.getHealth() - finalDamage;
+        if (newHealth < 0) newHealth = 0;
+        target.setHealth(newHealth);
+
+        // 播放受击音效和效果
+        playHitEffects(target, hitLoc);
+    }
+
+    private double calculateArmorReduction(LivingEntity target, double damage) {
+        // 获取目标的实际护甲值和盔甲韧性
+        double armor = target.getAttribute(Attribute.GENERIC_ARMOR).getValue();
+        double toughness = target.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS).getValue();
+
+        // 使用Minecraft原版护甲减伤公式
+        double reduction = damage * (armor / 5.0) * 0.04;
+        double toughnessReduction = damage * (toughness / 3.0) * 0.04;
+        double totalReduction = reduction + toughnessReduction;
+
+        // 确保减伤不超过80%
+        if (totalReduction > 0.8) totalReduction = 0.8;
+
+        return damage * (1 - totalReduction);
+    }
+
+
+    private void playHitEffects(LivingEntity target, Location hitLoc) {
+        // 播放受击音效
+        target.getWorld().playSound(hitLoc, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f);
+
+        // 给目标添加变红特效
+        target.playEffect(EntityEffect.HURT);
+
+        // 显示击中位置粒子(使用DAMAGE_INDICATOR和BLOCK_CRACK组合)
+        target.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, hitLoc, 5);
+        target.getWorld().spawnParticle(Particle.BLOCK, hitLoc, 10,
+                Material.REDSTONE_BLOCK.createBlockData());
     }
 
     private void displayRay(Location start, Location end) {

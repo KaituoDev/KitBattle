@@ -94,7 +94,9 @@ kits-config:
     shots-per-click: 4
     ray-radius: 0.5
     ray-distance: 20
-    close-range-damage: 2
-    far-range-damage: 0.5
+    close-range-damage: 1.25
+    far-range-damage: 0.25
     close-range-distance: 8
     max-shot-deviation: 2
+  Ninja:
+    cd: 250
