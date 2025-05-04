@@ -83,3 +83,20 @@ kits-config:
     blindness-amplifier: 0
   KonpakuYoumu:
     cd: 1200
+  Brimstone:
+    cd: 800
+    damage: 2.5
+    duration: 10
+    interval: 4
+  Destiny:
+    reload-ticks: 30
+    shot-cooldown: 4
+    shots-per-click: 4
+    ray-radius: 0.5
+    ray-distance: 20
+    close-range-damage: 1.25
+    far-range-damage: 0.25
+    close-range-distance: 8
+    max-shot-deviation: 2
+  Ninja:
+    cd: 250

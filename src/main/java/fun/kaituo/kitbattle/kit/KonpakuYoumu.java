@@ -215,60 +215,42 @@ public class KonpakuYoumu extends PlayerData implements Listener {
         World world = center.getWorld();
         if (world == null) return;
 
-        double radius = 9; // 球体半径
         Random random = new Random();
 
-        // 随机生成一个点
-        double theta = random.nextDouble() * Math.PI; // 极角 [0, π]
-        double phi = random.nextDouble() * 2 * Math.PI; // 方位角 [0, 2π]
+        // 1. 生成一个 0 度到 45 度之间的水平向量
+        double angle = Math.toRadians(random.nextDouble() * 45); // 随机生成 0 度到 45 度的角度
+        double x = 7 * Math.cos(angle); // 长度为 7 的 X 分量
+        double z = 7 * Math.sin(angle); // 长度为 7 的 Z 分量
+        Vector direction = new Vector(x, 0, z).normalize(); // 归一化向量
 
-        // 计算第一个端点的坐标
-        double x1 = radius * Math.sin(theta) * Math.cos(phi);
-        double y1 = radius * Math.cos(theta);
-        double z1 = radius * Math.sin(theta) * Math.sin(phi);
+        // 2. 生成随机的垂直平面圆心角（绕 X 轴的旋转角度）
+        double pitch = Math.toRadians(random.nextDouble() * 360); // 随机生成 0 度到 360 度的角度
 
-        // 计算第二个端点的坐标（直径的另一端）
-        double x2 = -x1;
-        double y2 = -y1;
-        double z2 = -z1;
+        // 3. 将水平向量乘以圆心角（绕 X 轴旋转）
+        double cosPitch = Math.cos(pitch);
+        double sinPitch = Math.sin(pitch);
+        double rotatedY = direction.getY() * cosPitch - direction.getZ() * sinPitch; // 旋转后的 Y 分量
+        double rotatedZ = direction.getY() * sinPitch + direction.getZ() * cosPitch; // 旋转后的 Z 分量
+        Vector rotatedDirection = new Vector(direction.getX(), rotatedY, rotatedZ).normalize(); // 旋转后的向量
 
-        // 计算连线与水平面的夹角
-        double deltaY = Math.abs(y2 - y1); // 垂直高度差
-        double horizontalDistance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(z2 - z1, 2)); // 水平距离
-        double angleWithHorizontal = Math.toDegrees(Math.atan2(deltaY, horizontalDistance)); // 连线与水平面的夹角
+        // 4. 生成反向量
+        Vector oppositeDirection = rotatedDirection.clone().multiply(-1); // 反向量
 
-        // 如果连线与水平面的夹角超过 60 度，则重新生成
-        if (angleWithHorizontal > 45) {
-            generateParticleEffect(center); // 递归调用，直到找到满足条件的直径
-            return;
-        }
-
-        // 随机生成一个偏移向量（长度 0 到 1 格）
+        // 5. 生成随机向量（长度为 0 到 1 格）
         double offsetX = (random.nextDouble() - 0.5) * 2; // [-1, 1]
         double offsetY = (random.nextDouble() - 0.5) * 2; // [-1, 1]
         double offsetZ = (random.nextDouble() - 0.5) * 2; // [-1, 1]
-        double offsetLength = Math.sqrt(offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ);
-        if (offsetLength > 1) {
-            // 如果偏移向量的长度大于 1，则归一化
-            offsetX /= offsetLength;
-            offsetY /= offsetLength;
-            offsetZ /= offsetLength;
-        }
+        Vector randomOffset = new Vector(offsetX, offsetY, offsetZ).normalize().multiply(random.nextDouble()); // 随机向量
 
-        // 从一端向另一端生成粒子，并沿偏移向量移动
-        for (double t = 0; t <= 1; t += 0.01) {
-            double x = x1 + t * (x2 - x1);
-            double y = y1 + t * (y2 - y1);
-            double z = z1 + t * (z2 - z1);
+        // 6. 连接向量和反向量，生成直线
+        for (double t = -7; t <= 7; t += 0.08) { // 从 -7 到 7，步长为 0.08
+            Vector currentVector = rotatedDirection.clone().multiply(t); // 当前向量
+            Location particleLocation = center.clone().add(currentVector); // 当前点的位置
 
-            // 应用偏移向量
-            x += offsetX;
-            y += offsetY;
-            z += offsetZ;
+            // 7. 应用随机向量
+            particleLocation.add(randomOffset);
 
-            Location particleLocation = center.clone().add(x, y, z);
-
-            // 生成白色粒子（末地烛粒子）
+            // 生成粒子
             world.spawnParticle(Particle.FIREWORK, particleLocation, 1, 0, 0, 0, 0);
         }
     }
@@ -486,11 +468,17 @@ public class KonpakuYoumu extends PlayerData implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (immunePlayers.containsKey(player.getUniqueId())) {
                 long immuneTime = immunePlayers.get(player.getUniqueId());
                 if (System.currentTimeMillis() <= immuneTime) {
+                    // Store original location
+                    Location originalLocation = player.getLocation().clone();
+
                     // 免疫伤害
                     event.setCancelled(true);
 
@@ -508,13 +496,16 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
-                            if (event.getDamager() instanceof LivingEntity) {
+                            if (event.getDamager() instanceof LivingEntity && ((LivingEntity) event.getDamager()).isValid()) {
                                 LivingEntity damager = (LivingEntity) event.getDamager();
                                 player.teleport(damager.getLocation());
-                                player.setGameMode(GameMode.ADVENTURE);
+                            } else {
+                                // If damager is invalid or not found, return to original location
+                                player.teleport(originalLocation);
                             }
+                            player.setGameMode(GameMode.ADVENTURE);
                         }
-                    }.runTaskLater(KitBattle.inst(), 30); // 1秒后执行
+                    }.runTaskLater(KitBattle.inst(), 30); // 1,5秒后执行 (30 ticks = 1 second)
                 }
 
                 // 移除免疫状态并取消粒子效果任务
@@ -529,9 +520,7 @@ public class KonpakuYoumu extends PlayerData implements Listener {
                 }
             }
         }
-    }
-
-    // 启动粒子效果任务
+    }    // 启动粒子效果任务
     private void startParticleEffect(Player player) {
         BukkitRunnable particleTask = new BukkitRunnable() {
             @Override
