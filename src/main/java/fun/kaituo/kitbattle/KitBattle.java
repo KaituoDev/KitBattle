@@ -155,7 +155,7 @@ public class KitBattle extends Game implements Listener {
         p.getInventory().addItem(getMenu());
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
         p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
-        p.teleport(location);
+        p.teleport(getGameTeleportLocation());
     }
 
     public Class<? extends PlayerData> getKitClass(String name) {
@@ -319,7 +319,7 @@ public class KitBattle extends Game implements Listener {
     @SuppressWarnings("deprecation")
     public void addPlayer(Player p) {
         playerIds.add(p.getUniqueId());
-        p.setBedSpawnLocation(location, true);
+        p.setBedSpawnLocation(getGameTeleportLocation(), true);
         p.setScoreboard(kitBattleBoard);
 
         PlayerData data = playerIdDataMap.get(p.getUniqueId());
