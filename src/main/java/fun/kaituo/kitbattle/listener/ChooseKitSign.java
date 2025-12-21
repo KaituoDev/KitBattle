@@ -22,7 +22,7 @@ public class ChooseKitSign extends AbstractSignListener {
         if (GameUtils.inst().getGame(p) != KitBattle.inst()) {
             return;
         }
-        Bukkit.dispatchCommand(p, "zmenu open kitbattle");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "zmenu open kitbattle " + p.getName());
     }
 
     @Override
