@@ -95,6 +95,10 @@ public class Sniper extends PlayerData {
     }
 
     private void shootImpreciseRay(Player player) {
+        if (player.hasCooldown(Material.SPYGLASS)) {
+            return;
+        }
+
         // 计算主射线方向
         Vector direction = player.getEyeLocation().getDirection().normalize();
         Vector start = player.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
@@ -135,6 +139,10 @@ public class Sniper extends PlayerData {
     }
 
     private void shootPreciseRay(Player player) {
+        if (player.hasCooldown(Material.SPYGLASS)) {
+            return;
+        }
+
         Vector direction = player.getEyeLocation().getDirection().normalize();
         Vector start = player.getEyeLocation().toVector().add(direction.clone().multiply(1.2)); // 让射线从玩家视线前方一点点发射
 
