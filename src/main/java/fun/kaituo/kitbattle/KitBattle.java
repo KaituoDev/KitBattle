@@ -14,7 +14,10 @@ import fun.kaituo.kitbattle.listener.RecoverOnKillSign;
 import fun.kaituo.kitbattle.util.PlayerData;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
@@ -81,6 +84,8 @@ public class KitBattle extends Game implements Listener {
     private Objective killsObjective;
 
     private ProtocolManager protocolManager;
+
+    private int secondTimer = 0;
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isInArena(Player p) {
@@ -163,8 +168,7 @@ public class KitBattle extends Game implements Listener {
     public void onDamage(EntityDamageEvent e) {
         // 处理所有实体的无敌时间
         if (!hasHitInterval()) {
-            if (e.getEntity() instanceof LivingEntity) {
-                LivingEntity entity = (LivingEntity) e.getEntity();
+            if (e.getEntity() instanceof LivingEntity entity) {
                 // 强制设置当前无敌时间和最大无敌时间为0
                 entity.setNoDamageTicks(0);
                 entity.setMaximumNoDamageTicks(0);
@@ -173,8 +177,7 @@ public class KitBattle extends Game implements Listener {
         }
 
         // 仅当HitInterval开启时才处理玩家的无敌时间
-        if (e.getEntity() instanceof Player) {
-            Player player = (Player) e.getEntity();
+        if (e.getEntity() instanceof Player player) {
             if (!isInArena(player)) return;
 
             if (player.getNoDamageTicks() > 0) {
@@ -299,7 +302,62 @@ public class KitBattle extends Game implements Listener {
         }
     }
 
+    private void playerLocationCheck() {
+        for (UUID uuid : playerIds) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) {
+                continue;
+            }
+            if (player.getGameMode() != GameMode.ADVENTURE) {
+                continue;
+            }
 
+            Location location = player.getLocation();
+            int x = location.getBlockX();
+            int y = location.getBlockY();
+            int z = location.getBlockZ();
+
+            // Exclude players who are too far away
+            if (x < -87 || x > 106) {
+                continue;
+            }
+            if (z < 905 || z > 1073) {
+                continue;
+            }
+            if (y > 149) {
+                continue;
+            }
+
+            if (x < -57 || x > 76) {
+                player.teleport(getRandomSpawnLoc());
+                player.playSound(player, Sound.ENTITY_PLAYER_TELEPORT, SOUND_VOLUME, 1);
+                player.sendMessage(Component.text("你不能离开地图的范围！").color(TextColor.color(255, 85, 85)));
+            }
+            if (z < 935 || z > 1043) {
+                player.teleport(getRandomSpawnLoc());
+                player.playSound(player, Sound.ENTITY_PLAYER_TELEPORT, SOUND_VOLUME, 1);
+                player.sendMessage(Component.text("你不能离开地图的范围！").color(TextColor.color(255, 85, 85)));
+            }
+            if (y > 140) {
+                player.teleport(getRandomSpawnLoc());
+                player.playSound(player, Sound.ENTITY_PLAYER_TELEPORT, SOUND_VOLUME, 1);
+                player.sendMessage(Component.text("你不能离开地图的范围！").color(TextColor.color(255, 85, 85)));
+            }
+            if (y < 48) {
+                EntityDamageEvent playerLastDamage = player.getLastDamageCause();
+                if (playerLastDamage == null) {
+                    player.damage(80);
+                }
+                else {
+                    try {
+                        player.damage(80, player.getLastDamageCause().getDamageSource());
+                    } catch (RuntimeException e) {
+                        player.damage(80);
+                    }
+                }
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
@@ -396,7 +454,15 @@ public class KitBattle extends Game implements Listener {
 
     @Override
     public void tick() {
+        ++secondTimer;
 
+        if (secondTimer >= 20) {
+            secondTimer = 0;
+        }
+
+        if (secondTimer%10 == 0) {
+            playerLocationCheck();
+        }
     }
 
     @Override
